@@ -41,15 +41,18 @@ impl<'a> App<'a> {
             width: w,
             height: h,
             sketch: sketch,
-            background: Color{ r: 0.2, g: 0.2, b: 0.2, a: 1.0 },
+            background: Color{ r: 0.0, g: 0.0, b: 0.0, a: 1.0 },
             events_loop: events_loop,
             gl_window: gl_window
         }
     }
 
-    unsafe fn clear_color(color: &Color) {
+    pub fn background(color: &Color) {
         let &Color{ r, g, b, a } = color;
-        gl::ClearColor(r, g, b, a);
+        unsafe {
+            gl::ClearColor(r, g, b, a);
+            gl::Clear(gl::COLOR_BUFFER_BIT);
+        }
     }
 
     pub fn run(&mut self) {
@@ -59,10 +62,9 @@ impl<'a> App<'a> {
             self.gl_window.make_current().unwrap();
         }
 
-        unsafe {
-            gl::load_with(|symbol| self.gl_window.get_proc_address(symbol) as *const _);
-            App::clear_color(&self.background);
-        }
+        gl::load_with(|symbol| self.gl_window.get_proc_address(symbol) as *const _);
+        App::background(&self.background);
+
 
         let mut running = true;
         while running {
@@ -82,12 +84,7 @@ impl<'a> App<'a> {
                 _ => (),
             });
 
-            unsafe {
-                App::clear_color(&self.background);
-                gl::Clear(gl::COLOR_BUFFER_BIT);
-
-                self.sketch.draw();
-            }
+            self.sketch.draw();
 
             self.gl_window.swap_buffers().unwrap();
         }
