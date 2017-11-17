@@ -2,11 +2,19 @@ extern crate p5;
 
 use p5::*;
 
-struct MySketch {}
+struct MySketch {
+    tri: Triangle
+}
 
 impl MySketch {
     fn new() -> MySketch {
-        MySketch {}
+        MySketch {
+            tri: Triangle::new(
+                Point::new(-50, 0, 0),
+                Point::new(0, 87, 0),
+                Point::new(50, 0, 0)
+            )
+        }
     }
 }
 
@@ -18,6 +26,7 @@ impl Sketch for MySketch {
     fn draw(&mut self) {
         let v = 0.2;
         App::background(&Color{r: v, g: v, b: v, a: 1.0});
+        self.tri.draw();
     }
 }
 

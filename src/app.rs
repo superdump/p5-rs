@@ -1,8 +1,8 @@
-extern crate gl;
 extern crate glutin;
 extern crate libc;
 
 use self::glutin::GlContext;
+use gl;
 
 use color::*;
 use sketch::*;
