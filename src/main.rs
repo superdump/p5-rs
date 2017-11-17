@@ -1,5 +1,7 @@
 extern crate p5;
 
+use p5::*;
+
 struct MySketch {}
 
 impl MySketch {
@@ -8,7 +10,7 @@ impl MySketch {
     }
 }
 
-impl p5::sketch::Sketch for MySketch {
+impl sketch::Sketch for MySketch {
     fn setup(&mut self) {
     }
 
@@ -18,6 +20,6 @@ impl p5::sketch::Sketch for MySketch {
 
 fn main() {
     let mut sketch = MySketch::new();
-    let mut app = p5::App::new(&mut sketch);
+    let mut app = App::new(&mut sketch);
     app.run();
 }
