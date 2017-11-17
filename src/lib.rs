@@ -56,8 +56,6 @@ impl<'a> App<'a> {
     }
 
     pub fn run(&mut self) {
-        self.sketch.setup();
-
         unsafe {
             self.gl_window.make_current().unwrap();
         }
@@ -65,6 +63,7 @@ impl<'a> App<'a> {
         gl::load_with(|symbol| self.gl_window.get_proc_address(symbol) as *const _);
         App::background(&self.background);
 
+        self.sketch.setup();
 
         let mut running = true;
         while running {
