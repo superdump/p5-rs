@@ -10,10 +10,10 @@ pub mod sketch;
 use sketch::*;
 
 pub struct Color {
-    pub r: GLfloat,
-    pub g: GLfloat,
-    pub b: GLfloat,
-    pub a: GLfloat,
+    pub r: f32,
+    pub g: f32,
+    pub b: f32,
+    pub a: f32,
 }
 
 pub struct App<'a> {
