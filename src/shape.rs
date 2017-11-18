@@ -33,7 +33,6 @@ pub fn points_to_vertices(points: Vec<Point>) -> Vec<GLfloat> {
 }
 
 pub fn draw(shape: &Shape) {
-    println!(">>> shape::draw");
     let vertices = shape.points();
     let vertex_data = points_to_vertices(vertices);
     let mut index_data = Vec::new();
@@ -85,7 +84,6 @@ pub fn draw(shape: &Shape) {
         );
         gl::EnableVertexAttribArray(pos_attr as GLuint);
     }
-    println!("<<< shape::draw");
 
     unsafe {
         gl::UseProgram(shader_program);
