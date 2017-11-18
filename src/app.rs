@@ -38,21 +38,13 @@ impl<'a> App<'a> {
         }
     }
 
-    pub fn background(color: &Color) {
-        let &Color{ r, g, b, a } = color;
-        unsafe {
-            gl::ClearColor(r, g, b, a);
-            gl::Clear(gl::COLOR_BUFFER_BIT);
-        }
-    }
-
     pub fn run(&mut self) {
         unsafe {
             self.gl_window.make_current().unwrap();
         }
 
         gl::load_with(|symbol| self.gl_window.get_proc_address(symbol) as *const _);
-        App::background(&self.background);
+        background(&self.background);
 
         self.sketch.setup();
 
@@ -78,5 +70,13 @@ impl<'a> App<'a> {
 
             self.gl_window.swap_buffers().unwrap();
         }
+    }
+}
+
+pub fn background(color: &Color) {
+    let &Color{ r, g, b, a } = color;
+    unsafe {
+        gl::ClearColor(r, g, b, a);
+        gl::Clear(gl::COLOR_BUFFER_BIT);
     }
 }

@@ -20,12 +20,12 @@ impl MySketch {
 
 impl Sketch for MySketch {
     fn setup(&mut self) {
-        App::background(&Color{r: 0.2, g: 0.2, b: 0.2, a: 1.0});
+        background(&Color{r: 0.2, g: 0.2, b: 0.2, a: 1.0});
     }
 
     fn draw(&mut self) {
         let v = 0.2;
-        App::background(&Color{r: v, g: v, b: v, a: 1.0});
+        background(&Color{r: v, g: v, b: v, a: 1.0});
         self.tri.draw();
     }
 }
