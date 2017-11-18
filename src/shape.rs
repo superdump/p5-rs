@@ -36,7 +36,7 @@ pub fn draw(shape: &Shape) {
     let vertices = shape.points();
     let vertex_data = points_to_vertices(vertices);
     let mut index_data = Vec::new();
-    for i in 0..vertex_data.len()-1 {
+    for i in 0..vertex_data.len() {
         index_data.push(i as GLuint);
     }
 
