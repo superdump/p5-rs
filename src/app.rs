@@ -1,14 +1,29 @@
 extern crate glutin;
 extern crate libc;
 
+use std::cell::RefCell;
+
 use self::glutin::GlContext;
 use gl;
 
 use color::*;
-use sketch::*;
 
-pub struct App<'a> {
-    sketch: &'a mut Sketch,
+thread_local! {
+    pub static RUST_THREAD_LOCAL: RefCell<App> = RefCell::new(App::new(None, None));
+}
+
+pub fn run_app(setup: fn(), draw: fn()) {
+    RUST_THREAD_LOCAL.with(|handle| {
+        let mut app = handle.borrow_mut();
+        app.setup = Some(setup);
+        app.draw = Some(draw);
+        app.run();
+    });
+}
+
+pub struct App {
+    setup: Option<fn()>,
+    draw: Option<fn()>,
     width: u32,
     height: u32,
     background: Color,
@@ -16,8 +31,8 @@ pub struct App<'a> {
     gl_window: glutin::GlWindow
 }
 
-impl<'a> App<'a> {
-    pub fn new(sketch: &'a mut Sketch) -> App<'a> {
+impl App {
+    pub fn new(setup: Option<fn()>, draw: Option<fn()>) -> App {
         let w = 640;
         let h = 360;
 
@@ -29,9 +44,10 @@ impl<'a> App<'a> {
         let gl_window = glutin::GlWindow::new(window, context, &events_loop).unwrap();
 
         App {
+            setup: setup,
+            draw: draw,
             width: w,
             height: h,
-            sketch: sketch,
             background: Color{ r: 0.0, g: 0.0, b: 0.0, a: 1.0 },
             events_loop: events_loop,
             gl_window: gl_window
@@ -46,7 +62,9 @@ impl<'a> App<'a> {
         gl::load_with(|symbol| self.gl_window.get_proc_address(symbol) as *const _);
         background(&self.background);
 
-        self.sketch.setup();
+        if let Some(setup) = self.setup {
+            setup();
+        }
 
         let mut running = true;
         while running {
@@ -66,7 +84,9 @@ impl<'a> App<'a> {
                 _ => (),
             });
 
-            self.sketch.draw();
+            if let Some(draw) = self.draw {
+                draw();
+            }
 
             self.gl_window.swap_buffers().unwrap();
         }
