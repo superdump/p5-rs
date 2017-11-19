@@ -2,6 +2,7 @@ use channel;
 use point::*;
 use shader::*;
 use sketch::SKETCH;
+use utils::*;
 
 use gl::types::*;
 use gl;
@@ -19,10 +20,14 @@ pub trait Shape {
 
 fn point_to_vertex(point: Point) -> [GLfloat; 3] {
     let sketch = SKETCH.lock().unwrap();
+    let max_w = (sketch.width/2) as f64;
+    let min_w = -max_w;
+    let max_h = (sketch.height/2) as f64;
+    let min_h = -max_h;
     [
-        point.x as GLfloat / sketch.width as GLfloat,
-        point.y as GLfloat / sketch.height as GLfloat,
-        point.z as GLfloat / sketch.height as GLfloat // FIXME: think about how to convert z
+        map(point.x as f64, min_w, max_w, -1.0, 1.0) as GLfloat,
+        map(point.y as f64, min_h, max_h, -1.0, 1.0) as GLfloat,
+        map(point.z as f64, min_h, max_h, -1.0, 1.0) as GLfloat, // FIXME: think about how to convert z
     ]
 }
 
