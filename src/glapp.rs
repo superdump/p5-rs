@@ -3,6 +3,7 @@ extern crate libc;
 
 use channel;
 use color::*;
+use sketch::SKETCH;
 
 use self::glutin::GlContext;
 use gl;
@@ -65,6 +66,8 @@ pub fn background(color: &Color) {
 }
 
 pub fn size(w: u32, h: u32) {
+    SKETCH.lock().unwrap().width = w.clone();
+    SKETCH.lock().unwrap().height = h.clone();
     channel::send_closure(Box::new(move || {
         GLAPP.with(|handle| {
             if let Some(ref mut glapp) = *handle.borrow_mut() {
