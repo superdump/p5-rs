@@ -2,10 +2,15 @@
 
 * Bugs
     * Closing the window and pressing escape should gracefully quit the application
+* Optimizations
+    * Avoid re-compiling and re-linking default shaders
+    * Channel incurs many context switches? Queue up closures and dispatch in one go.
+    * Limit to VSync?
 * Infrastructure
     * `loop()`, `noLoop()`
 * Global state
     * `stroke()`, `noStroke()`, `strokeWeight()`
+        * Cannot just use a fragment shader?
     * `fill()`, `noFill()`
 * Imperative drawing
     * `beginShape()`, `vertex()`, `endShape()`
