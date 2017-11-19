@@ -1,14 +1,15 @@
 ## TODO
 
+* Bugs
+    * Closing the window and pressing escape should gracefully quit the application
 * Infrastructure
-    * `setup()`, `draw()`, `loop()`, `noLoop()`
+    * `loop()`, `noLoop()`
 * Global state
-    * `background()`
     * `stroke()`, `noStroke()`, `strokeWeight()`
     * `fill()`, `noFill()`
 * Imperative drawing
     * `beginShape()`, `vertex()`, `endShape()`
-    * 2D: `rect()`, `triangle()`, `ellipse()`, `line()`, `point()`, `quad()`, `arc()`
+    * 2D: `rect()`, `ellipse()`, `line()`, `point()`, `quad()`, `arc()`
     * 3D: `box()`, `sphere()`
     * transforms: `popMatrix()`, `pushMatrix()`, `rotate()`, `rotateX()`, `rotateY()`, `rotateZ()`, `translate()`
 * Color
@@ -19,3 +20,11 @@
     * `noise()`, `random()`
 
 ## DONE
+
+* Infrastructure
+    * `setup()`, `draw()`
+* Global state
+    * `size()`
+    * `background()`
+* Imperative drawing
+    * 2D: `triangle()`
