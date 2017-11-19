@@ -13,12 +13,11 @@ fn setup() {
 }
 
 fn draw() {
-    // let tri = Triangle::new(
-    //     Point::new(-50, 0, 0),
-    //     Point::new(0, 87, 0),
-    //     Point::new(50, 0, 0),
-    // );
-    // tri.draw();
+    triangle(
+        Point::new(-50, 0, 0),
+        Point::new(0, 87, 0),
+        Point::new(50, 0, 0),
+    );
 }
 
 fn main() {
