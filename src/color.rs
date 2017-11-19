@@ -1,5 +1,8 @@
+use channel;
+use glapp;
 use sketch::*;
 
+#[derive(Clone)]
 pub struct Color {
     pub r: f32,
     pub g: f32,
@@ -7,8 +10,15 @@ pub struct Color {
     pub a: f32,
 }
 
+pub fn draw_background() {
+    channel::send_closure(Box::new(move || {
+        glapp::background(&SKETCH.lock().unwrap().background.clone());
+    }));
+}
+
 pub fn background(color: Color) {
-    SKETCH.lock().unwrap().background = color;
+    SKETCH.lock().unwrap().background = color.clone();
+    draw_background();
 }
 
 pub fn fill(color: Color) {

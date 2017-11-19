@@ -36,7 +36,7 @@ pub fn run_sketch(setup: fn(), draw: fn()) {
         while running {
             // FIXME: need a backchannel for events from the event loop polling
             glapp::poll_events();
-
+            draw_background();
             draw();
 
             glapp::swap_buffers();
