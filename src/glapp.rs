@@ -10,6 +10,9 @@ use gl;
 use std::cell::RefCell;
 use std::sync::mpsc;
 
+pub const DEFAULT_WIDTH: u32 = 640;
+pub const DEFAULT_HEIGHT: u32 = 360;
+
 thread_local! {
     static GLAPP: RefCell<Option<GLApp>> = RefCell::new(None);
 }
@@ -81,10 +84,10 @@ impl GLApp {
         let mut w = w;
         let mut h = h;
         if w == 0 {
-            w = 640;
+            w = DEFAULT_WIDTH;
         }
         if h == 0 {
-            h = 360;
+            h = DEFAULT_HEIGHT;
         }
         let events_loop = glutin::EventsLoop::new();
         let window = glutin::WindowBuilder::new()
