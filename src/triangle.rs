@@ -1,6 +1,11 @@
 use point::*;
 use shader;
 use shape;
+use shape::Shape;
+
+pub fn triangle(p1: Point, p2: Point, p3: Point) {
+    Triangle::new(p1, p2, p3).draw();
+}
 
 pub struct Triangle {
     points: Vec<Point>,
@@ -18,7 +23,7 @@ impl Triangle {
     }
 }
 
-impl shape::Shape for Triangle {
+impl Shape for Triangle {
     fn points(&self) -> Vec<Point> {
         self.points.clone()
     }
@@ -29,6 +34,6 @@ impl shape::Shape for Triangle {
         self.fragment_shader.clone()
     }
     fn draw(&self) {
-        shape::draw(self)
+        shape::draw(self);
     }
 }
