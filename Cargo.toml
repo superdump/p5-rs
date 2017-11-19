@@ -6,4 +6,5 @@ authors = ["Robert Swain <robert.swain@gmail.com>"]
 [dependencies]
 gl = "*"
 glutin = "*"
+lazy_static = "*"
 libc = "*"
