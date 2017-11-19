@@ -16,6 +16,7 @@ mod triangle;
 mod utils;
 
 pub use color::*;
+pub use glapp::size;
 pub use point::*;
 pub use shader::*;
 pub use shape::*;

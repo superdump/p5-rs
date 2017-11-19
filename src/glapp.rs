@@ -22,7 +22,7 @@ pub fn listen(rx: mpsc::Receiver<channel::ClosureType>) {
 
 pub fn setup() {
     GLAPP.with(|handle| {
-        handle.replace(Some(GLApp::new()));
+        handle.replace(Some(GLApp::new(0, 0)));
     });
     channel::send_closure(Box::new(move || {
         GLAPP.with(|handle| {
@@ -61,17 +61,35 @@ pub fn background(color: &Color) {
     }
 }
 
+pub fn size(w: u32, h: u32) {
+    channel::send_closure(Box::new(move || {
+        GLAPP.with(|handle| {
+            if let Some(ref mut glapp) = *handle.borrow_mut() {
+                glapp.size(w, h);
+            }
+        });
+    }));
+}
+
 struct GLApp {
     events_loop: glutin::EventsLoop,
     gl_window: glutin::GlWindow
 }
 
 impl GLApp {
-    pub fn new() -> GLApp {
+    pub fn new(w: u32, h: u32) -> GLApp {
+        let mut w = w;
+        let mut h = h;
+        if w == 0 {
+            w = 640;
+        }
+        if h == 0 {
+            h = 360;
+        }
         let events_loop = glutin::EventsLoop::new();
         let window = glutin::WindowBuilder::new()
             .with_title("p5-rs sketch")
-            .with_dimensions(640, 360);
+            .with_dimensions(w, h);
         let context = glutin::ContextBuilder::new().with_vsync(true);
         let gl_window = glutin::GlWindow::new(window, context, &events_loop).unwrap();
 
@@ -87,6 +105,14 @@ impl GLApp {
         }
 
         gl::load_with(|symbol| self.gl_window.get_proc_address(symbol) as *const _);
+    }
+
+    pub fn size(&mut self, w: u32, h: u32) {
+        if w == 0 || h == 0 {
+            return;
+        }
+        self.gl_window.window().set_inner_size(w, h);
+        self.gl_window.resize(w, h);
     }
 
     pub fn poll_events(&mut self) {

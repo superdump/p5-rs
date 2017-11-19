@@ -3,6 +3,7 @@ extern crate p5;
 use p5::*;
 
 fn setup() {
+    size(400, 400);
     background(Color {
         r: 0.2,
         g: 0.2,
