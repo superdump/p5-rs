@@ -14,9 +14,9 @@ fn setup() {
 
 fn draw() {
     triangle(
-        Point::new(-200, -200, 0),
-        Point::new(0, 147, 0),
-        Point::new(200, -200, 0),
+        Point::new(-200.0, -200.0, 0.0),
+        Point::new(0.0, 147.0, 0.0),
+        Point::new(200.0, -200.0, 0.0),
     );
 }
 
