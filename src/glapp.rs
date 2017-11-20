@@ -9,6 +9,7 @@ use self::glutin::GlContext;
 use gl;
 
 use std::cell::RefCell;
+use std::process::exit;
 use std::sync::mpsc;
 
 pub const DEFAULT_WIDTH: u32 = 640;
@@ -125,8 +126,7 @@ impl GLApp {
         let gl_window = &self.gl_window;
         self.events_loop.poll_events(|event| match event {
             glutin::Event::WindowEvent { event, .. } => match event {
-                // FIXME: send events
-                // glutin::WindowEvent::Closed => running = false,
+                glutin::WindowEvent::Closed => exit(0),
                 glutin::WindowEvent::Resized(w, h) => gl_window.resize(w, h),
                 _ => (),
             },
