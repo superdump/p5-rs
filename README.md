@@ -1,6 +1,10 @@
 # p5-rs - Processing / p5 for Rust
 
-This is an attempt by an OpenGL / Rust newbie to develop a library heading somewhat toward the same kind of functionality as Processing and p5 but for Rust.
+This is an attempt by an OpenGL / Rust newbie to develop a library heading somewhat toward the same kind of functionality and API as Processing / p5 but for Rust.
+
+## Status
+
+This is in early stage development. I'm working on it when I feel like it, so don't depend on me nor this yet. :grin:
 
 ## Design
 
@@ -11,3 +15,7 @@ There is high-level infrastructure for handling initialization (the `setup()` ca
 Most of the interesting part of a sketch is initiated through the `draw()` callback which is called once per frame to be rendered to the display. It is through code paths from this function that one draws everything to the display, such as rectangles, spheres, lines, points and so on.
 
 In order to make more interesting sketches, it is common to use a measurement of time that is incremented once per frame and then draw entities based on that time value. This approach can be used to step through animations or algorithms to progress the visualisation.
+
+## License
+
+MIT

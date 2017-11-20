@@ -2,9 +2,14 @@
 name = "p5"
 version = "0.1.0"
 authors = ["Robert Swain <robert.swain@gmail.com>"]
+description = "Processing / p5 for Rust. Trying to remain faithful to the Processing API."
+readme = "README.md"
+keywords = ["Processing", "p5"]
+license = "MIT"
+license-file = "LICENSE"
 
 [dependencies]
-gl = "*"
-glutin = "*"
-lazy_static = "*"
-libc = "*"
+gl = "0.6.5"
+glutin = "0.10.1"
+lazy_static = "0.2.10"
+libc = "0.2.33"
