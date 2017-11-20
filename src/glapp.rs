@@ -4,9 +4,11 @@ extern crate libc;
 use channel;
 use color::*;
 use sketch::SKETCH;
+use shader::*;
 
 use self::glutin::GlContext;
 use gl;
+use gl::types::*;
 
 use std::cell::RefCell;
 use std::process::exit;
@@ -58,6 +60,16 @@ pub fn swap_buffers() {
     }));
 }
 
+pub fn get_default_shader_program() -> GLuint {
+    let mut program: GLuint = 0;
+    GLAPP.with(|handle| {
+        if let Some(ref glapp) = *handle.borrow() {
+            program = glapp.default_shader_program;
+        }
+    });
+    program
+}
+
 pub fn background(color: &Color) {
     let &Color { r, g, b, a } = color;
     unsafe {
@@ -81,6 +93,7 @@ pub fn size(w: u32, h: u32) {
 struct GLApp {
     events_loop: glutin::EventsLoop,
     gl_window: glutin::GlWindow,
+    default_shader_program: GLuint,
 }
 
 impl GLApp {
@@ -101,8 +114,9 @@ impl GLApp {
         let gl_window = glutin::GlWindow::new(window, context, &events_loop).unwrap();
 
         GLApp {
-            events_loop: events_loop,
-            gl_window: gl_window,
+            events_loop,
+            gl_window,
+            default_shader_program: 123456, // FIXME: Is there any good value to use here?
         }
     }
 
@@ -112,6 +126,10 @@ impl GLApp {
         }
 
         gl::load_with(|symbol| self.gl_window.get_proc_address(symbol) as *const _);
+
+        let vertex_shader = compile_shader(&DEFAULT_VERTEX_SHADER, gl::VERTEX_SHADER);
+        let fragment_shader = compile_shader(&DEFAULT_FRAGMENT_SHADER, gl::FRAGMENT_SHADER);
+        self.default_shader_program = link_program(vertex_shader, fragment_shader);
     }
 
     pub fn size(&mut self, w: u32, h: u32) {
