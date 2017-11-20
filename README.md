@@ -1,6 +1,6 @@
 # p5-rs - Processing / p5 for Rust
 
-This is an attempt by an OpenGL / Rust newbie to develop a library heading somewhat toward the same kind of functionality and API as Processing / p5 but for Rust.
+This is an attempt by an OpenGL / Rust newbie ([Robert Swain](https://github.com/superdump)) to develop a library heading somewhat toward the same kind of functionality and API as Processing / p5 but for Rust.
 
 ## Status
 
