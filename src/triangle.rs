@@ -22,6 +22,9 @@ impl Shape for Triangle {
     fn points(&self) -> Vec<Point> {
         self.points.clone()
     }
+    fn indices(&self) -> Vec<Vec<u32>> {
+        vec!(vec!(0, 1, 2))
+    }
     fn vertex_shader(&self) -> String {
         String::from("")
     }
