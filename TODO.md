@@ -1,7 +1,5 @@
 ## TODO
 
-* Bugs
-    * Closing the window and pressing escape should gracefully quit the application
 * Optimizations
     * Avoid re-compiling and re-linking default shaders
     * Channel incurs many context switches? Queue up closures and dispatch in one go.
@@ -26,6 +24,8 @@
 
 ## DONE
 
+* Bugs
+    * Closing the window and pressing escape should gracefully quit the application
 * Infrastructure
     * `setup()`, `draw()`
 * Global state
