@@ -18,6 +18,8 @@ static p3: Point = Point {
     y: -50.0,
     z: 0.0,
 };
+static tl: Point = Point { x: -50.0, y: 50.0, z: 0.0 };
+static br: Point = Point { x: 50.0, y: -50.0, z: 0.0 };
 
 fn setup() {
     size(400, 400);
@@ -40,8 +42,8 @@ fn point_on_circle(center: &Point, radius: f32, sin: f32, cos: f32) -> Point {
 fn draw() {
     let origin = Point::new(0.0, 0.0, 0.0);
     let radius: f32 = 100.0;
-    let sin: f32;
-    let cos: f32;
+    let mut sin: f32;
+    let mut cos: f32;
     unsafe {
         sin = t.sin();
         cos = t.cos();
@@ -53,6 +55,14 @@ fn draw() {
         triCenter + p2,
         triCenter + p3,
     );
+    unsafe {
+        sin = (t + std::f32::consts::PI).sin();
+        cos = (t + std::f32::consts::PI).cos();
+    }
+    let rectCenter = point_on_circle(&origin, radius, sin, cos);
+    rect(
+        rectCenter + tl,
+        rectCenter + br,
     );
 }
 
