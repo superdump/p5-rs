@@ -22,7 +22,7 @@ thread_local! {
 pub fn listen(rx: mpsc::Receiver<channel::ClosureType>) {
     for boxed_closure in rx {
         boxed_closure();
-    };
+    }
 }
 
 pub fn setup() {
@@ -59,7 +59,7 @@ pub fn swap_buffers() {
 }
 
 pub fn background(color: &Color) {
-    let &Color{ r, g, b, a } = color;
+    let &Color { r, g, b, a } = color;
     unsafe {
         gl::ClearColor(r, g, b, a);
         gl::Clear(gl::COLOR_BUFFER_BIT);
@@ -80,7 +80,7 @@ pub fn size(w: u32, h: u32) {
 
 struct GLApp {
     events_loop: glutin::EventsLoop,
-    gl_window: glutin::GlWindow
+    gl_window: glutin::GlWindow,
 }
 
 impl GLApp {
@@ -102,7 +102,7 @@ impl GLApp {
 
         GLApp {
             events_loop: events_loop,
-            gl_window: gl_window
+            gl_window: gl_window,
         }
     }
 
@@ -127,6 +127,11 @@ impl GLApp {
         self.events_loop.poll_events(|event| match event {
             glutin::Event::WindowEvent { event, .. } => match event {
                 glutin::WindowEvent::Closed => exit(0),
+                glutin::WindowEvent::KeyboardInput { input, .. } => {
+                    if let Some(glutin::VirtualKeyCode::Escape) = input.virtual_keycode {
+                        exit(0);
+                    }
+                }
                 glutin::WindowEvent::Resized(w, h) => gl_window.resize(w, h),
                 _ => (),
             },
