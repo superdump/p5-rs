@@ -53,10 +53,12 @@ pub fn draw(shape: &Shape) {
     let mut fragment_shader_src = shape.fragment_shader();
 
     channel::send_closure(Box::new(move || {
+        // prepare
         let mut vao = 0;
         let mut vbo = 0;
         let mut ebo = 0;
 
+        let default_shader_program = get_default_shader_program();
         let shader_program: GLuint;
         if vertex_shader_src.len() > 0 || fragment_shader_src.len() > 0 {
             if vertex_shader_src.len() == 0 {
@@ -67,8 +69,13 @@ pub fn draw(shape: &Shape) {
             let vertex_shader = compile_shader(&vertex_shader_src, gl::VERTEX_SHADER);
             let fragment_shader = compile_shader(&fragment_shader_src, gl::FRAGMENT_SHADER);
             shader_program = link_program(vertex_shader, fragment_shader);
+
+            unsafe {
+                gl::DeleteShader(vertex_shader);
+                gl::DeleteShader(fragment_shader);
+            }
         } else {
-            shader_program = get_default_shader_program();
+            shader_program = default_shader_program;
         }
 
         unsafe {
@@ -104,10 +111,23 @@ pub fn draw(shape: &Shape) {
                 ptr::null(),
             );
             gl::EnableVertexAttribArray(pos_attr as GLuint);
+        }
 
+        // draw
+        unsafe {
             gl::UseProgram(shader_program);
             gl::BindVertexArray(vao);
             gl::DrawElements(gl::TRIANGLES, 3, gl::UNSIGNED_INT, ptr::null());
+        }
+
+        // cleanup
+        unsafe{
+            if shader_program != default_shader_program {
+                gl::DeleteProgram(shader_program);
+            }
+            gl::DeleteBuffers(1, &ebo);
+            gl::DeleteBuffers(1, &vbo);
+            gl::DeleteVertexArrays(1, &vao);
         }
     }));
 }
