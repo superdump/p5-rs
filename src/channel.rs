@@ -5,11 +5,11 @@ use std::sync::Mutex;
 pub type ClosureType = Box<FnBox() + Send>;
 
 lazy_static! {
-    pub static ref TX: Mutex<Option<mpsc::Sender<ClosureType>>> = Mutex::new(None);
+    pub static ref TX: Mutex<Option<mpsc::SyncSender<ClosureType>>> = Mutex::new(None);
 }
 
 pub fn make_channel() -> mpsc::Receiver<ClosureType> {
-    let (tx, rx) = mpsc::channel::<ClosureType>();
+    let (tx, rx) = mpsc::sync_channel::<ClosureType>(1);
     *TX.lock().unwrap() = Some(tx);
     rx
 }
