@@ -1,4 +1,5 @@
 use channel;
+use glapp::get_default_shader_program;
 use point::*;
 use shader::*;
 use sketch::SKETCH;
@@ -48,16 +49,27 @@ pub fn draw(shape: &Shape) {
         index_data.push(i as GLuint);
     }
 
-    let vertex_shader_src = shape.vertex_shader();
-    let fragment_shader_src = shape.fragment_shader();
+    let mut vertex_shader_src = shape.vertex_shader();
+    let mut fragment_shader_src = shape.fragment_shader();
 
     channel::send_closure(Box::new(move || {
         let mut vao = 0;
         let mut vbo = 0;
         let mut ebo = 0;
-        let vertex_shader = compile_shader(&vertex_shader_src, gl::VERTEX_SHADER);
-        let fragment_shader = compile_shader(&fragment_shader_src, gl::FRAGMENT_SHADER);
-        let shader_program = link_program(vertex_shader, fragment_shader);
+
+        let shader_program: GLuint;
+        if vertex_shader_src.len() > 0 || fragment_shader_src.len() > 0 {
+            if vertex_shader_src.len() == 0 {
+                vertex_shader_src = String::from(DEFAULT_VERTEX_SHADER);
+            } else if fragment_shader_src.len() == 0 {
+                fragment_shader_src = String::from(DEFAULT_FRAGMENT_SHADER);
+            }
+            let vertex_shader = compile_shader(&vertex_shader_src, gl::VERTEX_SHADER);
+            let fragment_shader = compile_shader(&fragment_shader_src, gl::FRAGMENT_SHADER);
+            shader_program = link_program(vertex_shader, fragment_shader);
+        } else {
+            shader_program = get_default_shader_program();
+        }
 
         unsafe {
             gl::GenVertexArrays(1, &mut vao);
