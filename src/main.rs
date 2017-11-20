@@ -47,10 +47,12 @@ fn draw() {
         cos = t.cos();
         t += 0.03;
     }
+    let triCenter = point_on_circle(&origin, radius, sin, cos);
     triangle(
-        point_on_circle(&origin, radius, sin, cos) + p1,
-        point_on_circle(&origin, radius, sin, cos) + p2,
-        point_on_circle(&origin, radius, sin, cos) + p3,
+        triCenter + p1,
+        triCenter + p2,
+        triCenter + p3,
+    );
     );
 }
 
