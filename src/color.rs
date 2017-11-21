@@ -83,6 +83,10 @@ pub fn stroke(color: Color) {
     SKETCH.lock().unwrap().stroke = color;
 }
 
+pub fn get_stroke() -> Color {
+    SKETCH.lock().unwrap().stroke.clone()
+}
+
 pub fn no_stroke() {
     SKETCH.lock().unwrap().stroke = Color {
         r: 0.0,
