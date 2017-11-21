@@ -25,6 +25,7 @@
 use point::*;
 use shape;
 use shape::Shape;
+use sketch::get_stroke_weight;
 
 pub fn rect<P: Into<Point>>(top_left: P, bottom_right: P) {
     Rectangle::new(top_left.into(), bottom_right.into(), false).draw();
@@ -37,6 +38,42 @@ pub struct Rectangle {
 
 impl Rectangle {
     pub fn new(top_left: Point, bottom_right: Point, is_stroke: bool) -> Rectangle {
+        let mut top_left = top_left;
+        let mut bottom_right = bottom_right;
+        let top_right;
+        let bottom_left;
+        if is_stroke {
+            // FIXME: Only works in 2D - need z = 0 to define a plane with the two points
+            let width = get_stroke_weight();
+            let half_width = (width as f32 * 0.5).ceil();
+            let mut anticlockwise: Point = (
+                -(bottom_right.y - top_left.y),
+                bottom_right.x - top_left.x,
+                0.0,
+            ).into();
+            anticlockwise.setMag(half_width);
+            let mut clockwise: Point = (
+                bottom_right.y - top_left.y,
+                -(bottom_right.x - top_left.x),
+                0.0,
+            ).into();
+            clockwise.setMag(half_width);
+            bottom_left = top_left + clockwise;
+            top_right = bottom_right + anticlockwise;
+            top_left = top_left + anticlockwise;
+            bottom_right  = bottom_right + clockwise;
+        } else {
+            bottom_left = Point {
+                x: top_left.x,
+                y: bottom_right.y,
+                z: bottom_right.z,
+            };
+            top_right = Point {
+                x: bottom_right.x,
+                y: top_left.y,
+                z: top_left.z,
+            };
+        }
         Rectangle {
             points: vec![top_left, bottom_right, top_right, bottom_left],
             is_stroke,

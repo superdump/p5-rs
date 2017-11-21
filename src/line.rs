@@ -22,56 +22,19 @@
  * SOFTWARE.
  */
 
-#![feature(fnbox)]
-#![feature(refcell_replace_swap)]
+use rectangle::Rectangle;
+use shape::Shape;
+use sketch::get_stroke_weight;
+use point::{Point, point};
 
-extern crate gl;
-#[macro_use]
-extern crate lazy_static;
-
-mod channel;
-mod color;
-mod ellipse;
-mod glapp;
-mod line;
-mod point;
-mod rectangle;
-mod shader;
-mod shape;
-mod sketch;
-mod triangle;
-mod utils;
-
-pub use color::*;
-pub use ellipse::*;
-pub use glapp::size;
-pub use line::*;
-pub use point::*;
-pub use rectangle::*;
-pub use shader::*;
-pub use shape::*;
-pub use sketch::*;
-pub use triangle::*;
-pub use utils::*;
-
-use std::thread;
-
-pub fn run_sketch(setup: fn(), draw: fn()) {
-    let rx = channel::make_channel();
-
-    glapp::setup();
-    thread::spawn(move || {
-        setup();
-
-        let mut running = true;
-        while running {
-            // FIXME: need a backchannel for events from the event loop polling
-            glapp::poll_events();
-            draw_background();
-            draw();
-
-            glapp::swap_buffers();
-        }
-    });
-    glapp::listen(rx);
+pub fn line<P: Into<Point>>(start: P, end: P) {
+    let s = start.into();
+    let e = end.into();
+    Rectangle::new(s.clone(), e.clone(), true).draw();
+    // Note: this is a small optimization for small stroke weights to not draw points
+    let width = get_stroke_weight();
+    if width > 4 {
+        point(s);
+        point(e);
+    }
 }
