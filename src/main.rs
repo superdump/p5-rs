@@ -103,7 +103,7 @@ fn draw() {
     );
 
     stroke((1.0,1.0,1.0,1.0).into());
-    strokeWidth(10);
+    strokeWeight(10);
     point(origin);
 }
 

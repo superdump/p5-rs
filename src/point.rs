@@ -24,12 +24,12 @@
 
 use ellipse::*;
 use shape::Shape;
-use sketch::get_stroke_width;
+use sketch::get_stroke_weight;
 
 use std::ops::Add;
 
 pub fn point<P: Into<Point>>(point: P) {
-    let diameter = get_stroke_width();
+    let diameter = get_stroke_weight();
     Ellipse::new(point.into(), diameter as f32, diameter as f32, 16, true).draw();
 }
 
