@@ -37,6 +37,7 @@ pub struct Sketch {
     pub background: Color,
     pub fill: Color,
     pub stroke: Color,
+    pub stroke_width: u32,
 }
 
 impl Sketch {
@@ -47,6 +48,19 @@ impl Sketch {
             background: Color{ r: 1.0, g: 1.0, b: 1.0, a: 1.0 },
             fill: Color{ r: 0.0, g: 1.0, b: 0.0, a: 1.0 },
             stroke: Color{ r: 0.0, g: 0.0, b: 0.0, a: 1.0 },
+            stroke_width: 1,
         }
     }
+}
+
+pub fn strokeWidth(w: u32) {
+    SKETCH.lock().unwrap().stroke_width = w;
+}
+
+pub fn get_stroke_width() -> u32 {
+    SKETCH.lock().unwrap().stroke_width
+}
+
+pub fn noStroke() {
+    SKETCH.lock().unwrap().stroke_width = 0;
 }
