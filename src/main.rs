@@ -42,8 +42,16 @@ static p3: Point = Point {
     y: -50.0,
     z: 0.0,
 };
-static tl: Point = Point { x: -50.0, y: 50.0, z: 0.0 };
-static br: Point = Point { x: 50.0, y: -50.0, z: 0.0 };
+static tl: Point = Point {
+    x: -50.0,
+    y: 50.0,
+    z: 0.0,
+};
+static br: Point = Point {
+    x: 50.0,
+    y: -50.0,
+    z: 0.0,
+};
 
 fn setup() {
     size(400, 400);
@@ -75,34 +83,22 @@ fn draw() {
     }
     let triCenter = point_on_circle(&origin, radius, sin, cos);
     fill((1.0, 0.0, 0.0, 1.0).into());
-    triangle(
-        triCenter + p1,
-        triCenter + p2,
-        triCenter + p3,
-    );
+    triangle(triCenter + p1, triCenter + p2, triCenter + p3);
     unsafe {
         sin = (t + std::f32::consts::FRAC_PI_2).sin();
         cos = (t + std::f32::consts::FRAC_PI_2).cos();
     }
     let ellipseCenter = point_on_circle(&origin, radius, sin, cos);
     fill((0.0, 1.0, 0.0, 1.0).into());
-    ellipse(
-        ellipseCenter,
-        200.0,
-        100.0,
-    );
+    ellipse(ellipseCenter, 200.0, 100.0);
     unsafe {
         sin = (t + std::f32::consts::PI).sin();
         cos = (t + std::f32::consts::PI).cos();
     }
     let rectCenter = point_on_circle(&origin, radius, sin, cos);
     fill((0.0, 0.0, 1.0, 1.0).into());
-    rect(
-        rectCenter + tl,
-        rectCenter + br,
-    );
+    rect(rectCenter + tl, rectCenter + br);
 
-    stroke((1.0,1.0,1.0,1.0).into());
     strokeWeight(10);
     point(origin);
 }
