@@ -44,6 +44,18 @@ impl Point {
     pub fn new(x: f32, y: f32, z: f32) -> Point {
         Point { x: x, y: y, z: z }
     }
+    pub fn mag(&self) -> f32 {
+        (self.x * self.x + self.y * self.y + self.z * self.z).sqrt()
+    }
+    pub fn setMag(&mut self, new_mag: f32) {
+        let scale = new_mag / self.mag();
+        self.x *= scale;
+        self.y *= scale;
+        self.z *= scale;
+    }
+    pub fn normalize(&mut self) {
+        self.setMag(1.0);
+    }
 }
 
 impl From<(f32, f32, f32)> for Point {
