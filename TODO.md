@@ -6,8 +6,6 @@
     * `loop()`, `noLoop()`
 * Global state
     * `stroke()`, `noStroke()`, `strokeWeight()`
-        * Cannot just use a fragment shader?
-    * `fill()`, `noFill()`
 * Imperative drawing
     * `beginShape()`, `vertex()`, `endShape()`
     * 2D: `line()`, `point()`, `quad()`, `arc()`
@@ -32,5 +30,6 @@
 * Global state
     * `size()`
     * `background()`
+    * `fill()`, `noFill()`
 * Imperative drawing
     * 2D: `triangle()`, `rect()`, `ellipse()`
