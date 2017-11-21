@@ -10,7 +10,7 @@
     * `fill()`, `noFill()`
 * Imperative drawing
     * `beginShape()`, `vertex()`, `endShape()`
-    * 2D: `ellipse()`, `line()`, `point()`, `quad()`, `arc()`
+    * 2D: `line()`, `point()`, `quad()`, `arc()`
     * 3D: `box()`, `sphere()`
     * transforms: `popMatrix()`, `pushMatrix()`, `rotate()`, `rotateX()`, `rotateY()`, `rotateZ()`, `translate()`
 * Color
@@ -33,4 +33,4 @@
     * `size()`
     * `background()`
 * Imperative drawing
-    * 2D: `triangle()`, `rect()`
+    * 2D: `triangle()`, `rect()`, `ellipse()`
