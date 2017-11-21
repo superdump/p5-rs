@@ -27,19 +27,19 @@ use shape;
 use shape::Shape;
 
 pub fn rect<P: Into<Point>>(top_left: P, bottom_right: P) {
-    Rectangle::new(top_left.into(), bottom_right.into()).draw();
+    Rectangle::new(top_left.into(), bottom_right.into(), false).draw();
 }
 
 pub struct Rectangle {
     points: Vec<Point>,
+    is_stroke: bool,
 }
 
 impl Rectangle {
-    pub fn new(top_left: Point, bottom_right: Point) -> Rectangle {
-        let top_right = Point { x: bottom_right.x, y: top_left.y, z: top_left.z };
-        let bottom_left = Point { x: top_left.x, y: bottom_right.y, z: bottom_right.z };
+    pub fn new(top_left: Point, bottom_right: Point, is_stroke: bool) -> Rectangle {
         Rectangle {
             points: vec![top_left, bottom_right, top_right, bottom_left],
+            is_stroke,
         }
     }
 }
@@ -61,6 +61,6 @@ impl Shape for Rectangle {
         shape::draw(self);
     }
     fn is_stroke(&self) -> bool {
-        false
+        self.is_stroke
     }
 }
