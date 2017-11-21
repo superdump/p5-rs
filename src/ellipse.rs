@@ -31,16 +31,17 @@ use std::f32::consts::*;
 const N_SEGMENTS: u32 = 64;
 
 pub fn ellipse<P: Into<Point>>(center: P, width: f32, height: f32) {
-    Ellipse::new(center.into(), width, height, N_SEGMENTS).draw();
+    Ellipse::new(center.into(), width, height, N_SEGMENTS, false).draw();
 }
 
 pub struct Ellipse {
     points: Vec<Point>,
     indices: Vec<Vec<u32>>,
+    is_stroke: bool,
 }
 
 impl Ellipse {
-    pub fn new(center: Point, width: f32, height: f32, n_segments: u32) -> Ellipse {
+    pub fn new(center: Point, width: f32, height: f32, n_segments: u32, is_stroke: bool) -> Ellipse {
         let mut points: Vec<Point> = Vec::new();
         let mut indices: Vec<Vec<u32>> = Vec::new();
 
@@ -93,6 +94,7 @@ impl Ellipse {
         Ellipse {
             points,
             indices,
+            is_stroke,
         }
     }
 }
@@ -114,6 +116,6 @@ impl Shape for Ellipse {
         shape::draw(self);
     }
     fn is_stroke(&self) -> bool {
-        false
+        self.is_stroke
     }
 }
