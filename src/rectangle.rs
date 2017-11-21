@@ -49,7 +49,7 @@ impl Shape for Rectangle {
         self.points.clone()
     }
     fn indices(&self) -> Vec<Vec<u32>> {
-        vec!(vec!(0, 1, 2), vec!(0, 3, 1))
+        vec![vec![0, 1, 2], vec![0, 3, 1]]
     }
     fn vertex_shader(&self) -> String {
         String::from("")
