@@ -36,9 +36,10 @@ pub const DEFAULT_VERTEX_SHADER: &'static str = "#version 330 core\n\
     }";
 
 pub const DEFAULT_FRAGMENT_SHADER: &'static str = "#version 330 core\n\
+    uniform vec4 in_color;\n\
     out vec4 out_color;\n\
     void main() {\n\
-        out_color = vec4(0.0f, 1.0f, 0.0f, 1.0f);\n\
+        out_color = in_color;\n\
     }";
 
 pub fn compile_shader(src: &str, shader_type: GLenum) -> GLuint {

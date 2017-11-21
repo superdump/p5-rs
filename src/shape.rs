@@ -23,6 +23,7 @@
  */
 
 use channel;
+use color::*;
 use glapp::get_default_shader_program;
 use point::*;
 use shader::*;
@@ -66,7 +67,7 @@ pub fn points_to_vertices(points: Vec<Point>) -> Vec<GLfloat> {
     vertices
 }
 
-fn make_triangle(vertex_data: &Vec<GLfloat>, index_data: &Vec<GLuint>, shader_program: &GLuint) -> (GLuint, GLuint, GLuint) {
+fn make_triangle(vertex_data: &Vec<GLfloat>, index_data: &Vec<GLuint>, shader_program: &GLuint, color: &Vec<GLfloat>) -> (GLuint, GLuint, GLuint) {
     let mut vao = 0;
     let mut vbo = 0;
     let mut ebo = 0;
@@ -104,6 +105,14 @@ fn make_triangle(vertex_data: &Vec<GLfloat>, index_data: &Vec<GLuint>, shader_pr
             ptr::null(),
         );
         gl::EnableVertexAttribArray(pos_attr as GLuint);
+
+        // Specify the color
+        let color_uniform = gl::GetUniformLocation(*shader_program, CString::new("in_color").unwrap().as_ptr());
+        gl::Uniform4fv(
+            color_uniform as GLint,
+            1,
+            color.as_ptr(),
+        );
     }
 
     (vao, vbo, ebo)
@@ -116,6 +125,7 @@ pub fn draw(shape: &Shape) {
 
     let mut vertex_shader_src = shape.vertex_shader();
     let mut fragment_shader_src = shape.fragment_shader();
+    let color = get_fill().as_vec4();
 
     channel::send_closure(Box::new(move || {
         // prepare
@@ -144,7 +154,7 @@ pub fn draw(shape: &Shape) {
         let mut ebo: Vec<GLuint> = Vec::new();
 
         for triangle in index_data {
-            let (tri_vao, tri_vbo, tri_ebo) = make_triangle(&vertex_data, &triangle, &shader_program);
+            let (tri_vao, tri_vbo, tri_ebo) = make_triangle(&vertex_data, &triangle, &shader_program, &color);
             vao.push(tri_vao);
             vbo.push(tri_vbo);
             ebo.push(tri_ebo);
