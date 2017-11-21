@@ -4,11 +4,9 @@
     * Channel incurs many context switches? Queue up closures and dispatch in one go.
 * Infrastructure
     * `loop()`, `noLoop()`
-* Global state
-    * `stroke()`, `noStroke()`, `strokeWeight()`
 * Imperative drawing
     * `beginShape()`, `vertex()`, `endShape()`
-    * 2D: `line()`, `point()`, `quad()`, `arc()`
+    * 2D: `line()`, `quad()`, `arc()`
     * 3D: `box()`, `sphere()`
     * transforms: `popMatrix()`, `pushMatrix()`, `rotate()`, `rotateX()`, `rotateY()`, `rotateZ()`, `translate()`
 * Color
@@ -31,5 +29,6 @@
     * `size()`
     * `background()`
     * `fill()`, `noFill()`
+    * `stroke()`, `noStroke()`, `strokeWeight()`
 * Imperative drawing
-    * 2D: `triangle()`, `rect()`, `ellipse()`
+    * 2D: `triangle()`, `rect()`, `ellipse()`, `point()`
