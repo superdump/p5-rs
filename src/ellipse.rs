@@ -44,17 +44,13 @@ impl Ellipse {
         let mut points: Vec<Point> = Vec::new();
         let mut indices: Vec<Vec<u32>> = Vec::new();
 
-        let ab = width * height * 0.25;
-        let aa = width * width * 0.25;
-        let bb = height * height * 0.25;
+        let a = width * 0.5;
+        let b = height * 0.5;
 
         let point_from_angle = |angle: f32| -> Point {
-            let sin = angle.sin();
-            let cos = angle.cos();
-            let den = (bb * cos * cos + aa * sin * sin).sqrt();
             Point {
-                x: ab * cos / den,
-                y: ab * sin / den,
+                x: a * angle.cos(),
+                y: b * angle.sin(),
                 z: 0.0,
             }
         };
