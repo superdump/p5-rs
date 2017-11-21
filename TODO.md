@@ -1,6 +1,7 @@
 ## TODO
 
 * Optimizations
+    * Investigate performance issues
     * Channel incurs many context switches? Queue up closures and dispatch in one go.
 * Infrastructure
     * `loop()`, `noLoop()`
