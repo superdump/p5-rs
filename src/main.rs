@@ -100,6 +100,10 @@ fn draw() {
     rect(rectCenter + tl, rectCenter + br);
 
     strokeWeight(10);
+    stroke((1.0, 1.0, 0.0, 1.0).into());
+    line((-100.0, -50.0, 0.0), (100.0, 50.0, 0.0));
+
+    stroke((0.0, 1.0, 1.0, 1.0).into());
     point(origin);
 }
 
