@@ -6,7 +6,7 @@
     * `loop()`, `noLoop()`
 * Imperative drawing
     * `beginShape()`, `vertex()`, `endShape()`
-    * 2D: `line()`, `quad()`, `arc()`
+    * 2D: `quad()`, `arc()`
     * 3D: `box()`, `sphere()`
     * transforms: `popMatrix()`, `pushMatrix()`, `rotate()`, `rotateX()`, `rotateY()`, `rotateZ()`, `translate()`
 * Color
@@ -31,4 +31,4 @@
     * `fill()`, `noFill()`
     * `stroke()`, `noStroke()`, `strokeWeight()`
 * Imperative drawing
-    * 2D: `triangle()`, `rect()`, `ellipse()`, `point()`
+    * 2D: `triangle()`, `rect()`, `ellipse()`, `point()`, `line()`
