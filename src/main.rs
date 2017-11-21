@@ -101,6 +101,10 @@ fn draw() {
         rectCenter + tl,
         rectCenter + br,
     );
+
+    stroke((1.0,1.0,1.0,1.0).into());
+    strokeWidth(10);
+    point(origin);
 }
 
 fn main() {
