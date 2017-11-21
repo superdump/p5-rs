@@ -34,6 +34,23 @@ pub struct Color {
     pub a: f32,
 }
 
+impl Color {
+    pub fn as_vec4(&self) -> Vec<f32> {
+        vec![self.r, self.g, self.b, self.a]
+    }
+}
+
+impl From<(f32, f32, f32, f32)> for Color {
+    fn from(p: (f32, f32, f32, f32)) -> Self {
+        Color {
+            r: p.0,
+            g: p.1,
+            b: p.2,
+            a: p.3,
+        }
+    }
+}
+
 pub fn draw_background() {
     channel::send_closure(Box::new(move || {
         glapp::background(&SKETCH.lock().unwrap().background.clone());
@@ -47,6 +64,10 @@ pub fn background(color: Color) {
 
 pub fn fill(color: Color) {
     SKETCH.lock().unwrap().fill = color;
+}
+
+pub fn get_fill() -> Color {
+    SKETCH.lock().unwrap().fill.clone()
 }
 
 pub fn no_fill() {
