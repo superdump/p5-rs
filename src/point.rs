@@ -22,7 +22,16 @@
  * SOFTWARE.
  */
 
+use ellipse::*;
+use shape::Shape;
+use sketch::get_stroke_width;
+
 use std::ops::Add;
+
+pub fn point<P: Into<Point>>(point: P) {
+    let diameter = get_stroke_width();
+    Ellipse::new(point.into(), diameter as f32, diameter as f32, 16, true).draw();
+}
 
 #[derive(Copy, Clone, Debug)]
 pub struct Point {
