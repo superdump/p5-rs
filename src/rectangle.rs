@@ -60,4 +60,7 @@ impl Shape for Rectangle {
     fn draw(&self) {
         shape::draw(self);
     }
+    fn is_stroke(&self) -> bool {
+        false
+    }
 }

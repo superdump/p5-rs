@@ -43,6 +43,7 @@ pub trait Shape {
     fn vertex_shader(&self) -> String;
     fn fragment_shader(&self) -> String;
     fn draw(&self);
+    fn is_stroke(&self) -> bool;
 }
 
 fn point_to_vertex(point: Point) -> [GLfloat; 3] {
@@ -125,7 +126,12 @@ pub fn draw(shape: &Shape) {
 
     let mut vertex_shader_src = shape.vertex_shader();
     let mut fragment_shader_src = shape.fragment_shader();
-    let color = get_fill().as_vec4();
+    let color;
+    if shape.is_stroke() {
+        color = get_stroke().as_vec4();
+    } else {
+        color = get_fill().as_vec4();
+    }
 
     channel::send_closure(Box::new(move || {
         // prepare
