@@ -31,7 +31,7 @@ use std::f32::consts::*;
 const N_SEGMENTS: u32 = 64;
 
 pub fn ellipse<P: Into<Point>>(center: P, width: f32, height: f32) {
-    Ellipse::new(center.into(), width, height).draw();
+    Ellipse::new(center.into(), width, height, N_SEGMENTS).draw();
 }
 
 pub struct Ellipse {
@@ -40,7 +40,7 @@ pub struct Ellipse {
 }
 
 impl Ellipse {
-    pub fn new(center: Point, width: f32, height: f32) -> Ellipse {
+    pub fn new(center: Point, width: f32, height: f32, n_segments: u32) -> Ellipse {
         let mut points: Vec<Point> = Vec::new();
         let mut indices: Vec<Vec<u32>> = Vec::new();
 
@@ -57,8 +57,8 @@ impl Ellipse {
 
         points.push(center.clone());
         points.push(center + point_from_angle(0.0f32));
-        let da = 2.0 * PI / (N_SEGMENTS as f32);
-        for i in 1..N_SEGMENTS/2 {
+        let da = 2.0 * PI / (n_segments as f32);
+        for i in 1..n_segments/2 {
             let p = point_from_angle((i as f32) * da);
             points.push(center + Point {x: p.x, y: -p.y, z: p.z});
             points.push(center + p);
@@ -66,7 +66,7 @@ impl Ellipse {
         points.push(center + point_from_angle(PI));
 
         /* e.g.
-         * N_SEGMENTS = 6
+         * n_segments = 6
          * always anti-clockwise through vertices
          *
          *  5 3
@@ -83,12 +83,12 @@ impl Ellipse {
 
         indices.push(vec![0, 1, 3]);
         indices.push(vec![0, 2, 1]);
-        for i in 1..(N_SEGMENTS/2)-1 {
+        for i in 1..(n_segments/2)-1 {
             indices.push(vec![0, 2*i+1, 2*i+3]);
             indices.push(vec![0, 2*i+2, 2*i]);
         }
-        indices.push(vec![0, N_SEGMENTS-1, N_SEGMENTS]);
-        indices.push(vec![0, N_SEGMENTS, N_SEGMENTS-2]);
+        indices.push(vec![0, n_segments-1, n_segments]);
+        indices.push(vec![0, n_segments, n_segments-2]);
 
         Ellipse {
             points,
