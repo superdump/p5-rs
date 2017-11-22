@@ -57,13 +57,13 @@ pub fn draw_background() {
     }));
 }
 
-pub fn background(color: Color) {
-    SKETCH.lock().unwrap().background = color.clone();
+pub fn background<C: Into<Color>>(color: C) {
+    SKETCH.lock().unwrap().background = color.into().clone();
     draw_background();
 }
 
-pub fn fill(color: Color) {
-    SKETCH.lock().unwrap().fill = color;
+pub fn fill<C: Into<Color>>(color: C) {
+    SKETCH.lock().unwrap().fill = color.into();
 }
 
 pub fn get_fill() -> Color {
@@ -79,8 +79,8 @@ pub fn no_fill() {
     };
 }
 
-pub fn stroke(color: Color) {
-    SKETCH.lock().unwrap().stroke = color;
+pub fn stroke<C: Into<Color>>(color: C) {
+    SKETCH.lock().unwrap().stroke = color.into();
 }
 
 pub fn get_stroke() -> Color {
