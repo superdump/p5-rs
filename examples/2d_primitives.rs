@@ -101,7 +101,17 @@ fn draw() {
 
     strokeWeight(10);
     stroke((1.0, 1.0, 0.0, 1.0));
-    line((-100.0, -50.0, 0.0), (100.0, 50.0, 0.0));
+    unsafe {
+        sin = (-0.5 * t).sin();
+        cos = (-0.5 * t).cos();
+    }
+    let start = point_on_circle(&origin, 0.75 * radius, sin, cos);
+    unsafe {
+        sin = (-0.5 * t - std::f32::consts::PI).sin();
+        cos = (-0.5 * t - std::f32::consts::PI).cos();
+    }
+    let end = point_on_circle(&origin, 0.75 * radius, sin, cos);
+    line(start, end);
 
     stroke((0.0, 1.0, 1.0, 1.0));
     point(origin);
