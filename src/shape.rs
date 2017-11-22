@@ -133,7 +133,7 @@ pub fn draw(shape: &Shape) {
         color = get_fill().as_vec4();
     }
 
-    channel::send_closure(Box::new(move || {
+    channel::push(Box::new(move || {
         // prepare
         let default_shader_program = get_default_shader_program();
         let shader_program: GLuint;

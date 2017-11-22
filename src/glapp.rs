@@ -45,9 +45,11 @@ thread_local! {
     static GLAPP: RefCell<Option<GLApp>> = RefCell::new(None);
 }
 
-pub fn listen(rx: mpsc::Receiver<channel::ClosureType>) {
-    for boxed_closure in rx {
-        boxed_closure();
+pub fn listen(rx: mpsc::Receiver<channel::MessageType>) {
+    for closures in rx {
+        for boxed_closure in closures {
+            boxed_closure();
+        }
     }
 }
 
@@ -55,17 +57,19 @@ pub fn setup() {
     GLAPP.with(|handle| {
         handle.replace(Some(GLApp::new(0, 0)));
     });
-    channel::send_closure(Box::new(move || {
+    channel::push(Box::new(move || {
         GLAPP.with(|handle| {
             if let Some(ref mut glapp) = *handle.borrow_mut() {
+                println!("Running GL setup for the window");
                 glapp.setup();
             }
         });
     }));
+    channel::send();
 }
 
 pub fn poll_events() {
-    channel::send_closure(Box::new(move || {
+    channel::push(Box::new(move || {
         GLAPP.with(|handle| {
             if let Some(ref mut glapp) = *handle.borrow_mut() {
                 glapp.poll_events();
@@ -75,7 +79,7 @@ pub fn poll_events() {
 }
 
 pub fn swap_buffers() {
-    channel::send_closure(Box::new(move || {
+    channel::push(Box::new(move || {
         GLAPP.with(|handle| {
             if let Some(ref mut glapp) = *handle.borrow_mut() {
                 glapp.swap_buffers();
@@ -105,13 +109,15 @@ pub fn background(color: &Color) {
 pub fn size(w: u32, h: u32) {
     SKETCH.lock().unwrap().width = w.clone();
     SKETCH.lock().unwrap().height = h.clone();
-    channel::send_closure(Box::new(move || {
+    channel::push(Box::new(move || {
         GLAPP.with(|handle| {
             if let Some(ref mut glapp) = *handle.borrow_mut() {
+                println!("Setting size to {}x{}", w, h);
                 glapp.size(w, h);
             }
         });
     }));
+    channel::send();
 }
 
 struct GLApp {

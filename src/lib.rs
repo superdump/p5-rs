@@ -94,6 +94,7 @@ pub fn run_sketch(setup: fn(), draw: fn(), log: bool) {
             draw();
 
             glapp::swap_buffers();
+            channel::send();
         }
     });
     glapp::listen(rx);

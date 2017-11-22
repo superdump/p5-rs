@@ -52,7 +52,7 @@ impl From<(f32, f32, f32, f32)> for Color {
 }
 
 pub fn draw_background() {
-    channel::send_closure(Box::new(move || {
+    channel::push(Box::new(move || {
         glapp::background(&SKETCH.lock().unwrap().background.clone());
     }));
 }

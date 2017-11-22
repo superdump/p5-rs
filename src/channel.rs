@@ -27,19 +27,31 @@ use std::sync::mpsc;
 use std::sync::Mutex;
 
 pub type ClosureType = Box<FnBox() + Send>;
+pub type MessageType = Vec<ClosureType>;
 
 lazy_static! {
-    pub static ref TX: Mutex<Option<mpsc::SyncSender<ClosureType>>> = Mutex::new(None);
+    pub static ref TX: Mutex<Option<mpsc::SyncSender<MessageType>>> = Mutex::new(None);
+    pub static ref TX_QUEUE: Mutex<Option<MessageType>> = Mutex::new(None);
 }
 
-pub fn make_channel() -> mpsc::Receiver<ClosureType> {
-    let (tx, rx) = mpsc::sync_channel::<ClosureType>(1);
+pub fn make_channel() -> mpsc::Receiver<MessageType> {
+    let (tx, rx) = mpsc::sync_channel::<MessageType>(1);
     *TX.lock().unwrap() = Some(tx);
+    *TX_QUEUE.lock().unwrap() = Some(Vec::new());
     rx
 }
 
-pub fn send_closure(closure: ClosureType) {
-    if let Some(ref tx) = *TX.lock().unwrap() {
-        tx.send(closure).unwrap();
+pub fn send() {
+    if let Some(ref mut tx_queue) = *TX_QUEUE.lock().unwrap() {
+        if let Some(ref tx) = *TX.lock().unwrap() {
+            let message: MessageType = tx_queue.drain(..).collect();
+            tx.send(message).unwrap();
+        }
+    }
+}
+
+pub fn push(closure: ClosureType) {
+    if let Some(ref mut tx_queue) = *TX_QUEUE.lock().unwrap() {
+        tx_queue.push(closure);
     }
 }
