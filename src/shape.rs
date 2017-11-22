@@ -69,7 +69,7 @@ pub fn points_to_vertices(points: Vec<Point>) -> Vec<GLfloat> {
     vertices
 }
 
-fn make_triangle(vertex_data: &Vec<GLfloat>, index_data: &Vec<GLuint>, shader_program: &GLuint, color: &Vec<GLfloat>) -> (GLuint, GLuint, GLuint) {
+fn make_triangle(vertex_data: &Vec<GLfloat>, index_data: &Vec<GLuint>, color: &Vec<GLfloat>) -> (GLuint, GLuint, GLuint) {
     let mut vao = 0;
     let mut vbo = 0;
     let mut ebo = 0;
@@ -104,28 +104,28 @@ fn make_triangle(vertex_data: &Vec<GLfloat>, index_data: &Vec<GLuint>, shader_pr
         );
 
         // Specify the layout of the vertex data
-        let pos_attr = gl::GetAttribLocation(*shader_program, CString::new("position").unwrap().as_ptr());
+        let pos_attr: GLuint = 0;
         gl::VertexAttribPointer(
-            pos_attr as GLuint,
+            pos_attr,
             3,
             gl::FLOAT,
             gl::FALSE as GLboolean,
             7 * size_of::<GLfloat>() as GLint,
             ptr::null(),
         );
-        gl::EnableVertexAttribArray(pos_attr as GLuint);
+        gl::EnableVertexAttribArray(pos_attr);
 
         // Specify the color
-        let col_attr = gl::GetAttribLocation(*shader_program, CString::new("a_color").unwrap().as_ptr());
+        let col_attr: GLuint = 1;
         gl::VertexAttribPointer(
-            col_attr as GLuint,
+            col_attr,
             4,
             gl::FLOAT,
             gl::FALSE as GLboolean,
             7 * size_of::<GLfloat>() as GLint,
             (3 * size_of::<GLfloat>()) as *const c_void,
         );
-        gl::EnableVertexAttribArray(col_attr as GLuint);
+        gl::EnableVertexAttribArray(col_attr);
     }
 
     (vao, vbo, ebo)
@@ -172,7 +172,7 @@ pub fn draw(shape: &Shape) {
         let mut ebo: Vec<GLuint> = Vec::new();
 
         for triangle in index_data {
-            let (tri_vao, tri_vbo, tri_ebo) = make_triangle(&vertex_data, &triangle, &shader_program, &color);
+            let (tri_vao, tri_vbo, tri_ebo) = make_triangle(&vertex_data, &triangle, &color);
             vao.push(tri_vao);
             vbo.push(tri_vbo);
             ebo.push(tri_ebo);
