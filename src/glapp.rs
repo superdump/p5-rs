@@ -45,6 +45,11 @@ use std::sync::{mpsc, Mutex};
 pub const DEFAULT_WIDTH: u32 = 640;
 pub const DEFAULT_HEIGHT: u32 = 360;
 
+/* NOTE: GLAPP is thread-local because:
+ * `*mut objc::runtime::Object` cannot be sent between threads safely
+ * It must be used only from the main thread as macOS requires GL windows are
+ * created from the main thread.
+ */
 thread_local! {
     static GLAPP: RefCell<Option<GLApp>> = RefCell::new(None);
 }
