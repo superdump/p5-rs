@@ -23,88 +23,57 @@
  */
 
 extern crate p5;
+extern crate rand;
 
 use p5::*;
 
-static mut t: f32 = 0.0;
-static p1: Point = Point {
-    x: -50.0,
-    y: -50.0,
-    z: 0.0,
-};
-static p2: Point = Point {
-    x: 0.0,
-    y: 43.0,
-    z: 0.0,
-};
-static p3: Point = Point {
-    x: 50.0,
-    y: -50.0,
-    z: 0.0,
-};
-static tl: Point = Point {
-    x: -50.0,
-    y: 50.0,
-    z: 0.0,
-};
-static br: Point = Point {
-    x: 50.0,
-    y: -50.0,
-    z: 0.0,
-};
+use rand::Rng;
+use rand::distributions::{IndependentSample, Range};
+
+const N_OBJECTS: usize = 10_000;
+
+static mut points: Option<Vec<Point>> = None;
+
+const WIDTH: u32 = 800;
+const HEIGHT: u32 = 800;
 
 fn setup() {
-    size(400, 400);
+    size(WIDTH, HEIGHT);
     background(Color {
         r: 0.2,
         g: 0.2,
         b: 0.2,
         a: 1.0,
     });
-}
 
-fn point_on_circle(center: &Point, radius: f32, sin: f32, cos: f32) -> Point {
-    Point {
-        x: center.x + radius * sin,
-        y: center.y + radius * cos,
-        z: center.z,
+    let between = Range::new(-((WIDTH/2) as f32), (WIDTH/2) as f32);
+    let mut rng = rand::thread_rng();
+    let mut ps = Vec::with_capacity(N_OBJECTS);
+    for i in 0..N_OBJECTS {
+        ps.push(Point::new(
+            between.ind_sample(&mut rng),
+            between.ind_sample(&mut rng),
+            0.0
+        ));
+    }
+    unsafe {
+        points = Some(ps);
     }
 }
 
 fn draw() {
-    let origin = Point::new(0.0, 0.0, 0.0);
-    let radius: f32 = 100.0;
-    let mut sin: f32;
-    let mut cos: f32;
+    fill((1.0, 1.0, 1.0, 1.0).into());
     unsafe {
-        sin = t.sin();
-        cos = t.cos();
-        t += 0.03;
+        if let Some(ref ps) = points {
+            for p in ps {
+                triangle(
+                    *p,
+                    Point::new(p.x + 3.0, p.y + 3.0, p.z),
+                    Point::new(p.x + 6.0, p.y, p.z),
+                );
+            }
+        }
     }
-    let triCenter = point_on_circle(&origin, radius, sin, cos);
-    fill((1.0, 0.0, 0.0, 1.0).into());
-    triangle(triCenter + p1, triCenter + p2, triCenter + p3);
-    unsafe {
-        sin = (t + std::f32::consts::FRAC_PI_2).sin();
-        cos = (t + std::f32::consts::FRAC_PI_2).cos();
-    }
-    let ellipseCenter = point_on_circle(&origin, radius, sin, cos);
-    fill((0.0, 1.0, 0.0, 1.0).into());
-    ellipse(ellipseCenter, 200.0, 100.0);
-    unsafe {
-        sin = (t + std::f32::consts::PI).sin();
-        cos = (t + std::f32::consts::PI).cos();
-    }
-    let rectCenter = point_on_circle(&origin, radius, sin, cos);
-    fill((0.0, 0.0, 1.0, 1.0).into());
-    rect(rectCenter + tl, rectCenter + br);
-
-    strokeWeight(10);
-    stroke((1.0, 1.0, 0.0, 1.0).into());
-    line((-100.0, -50.0, 0.0), (100.0, 50.0, 0.0));
-
-    stroke((0.0, 1.0, 1.0, 1.0).into());
-    point(origin);
 }
 
 fn main() {
