@@ -25,6 +25,7 @@
 #![feature(fnbox)]
 #![feature(refcell_replace_swap)]
 
+extern crate game_time;
 extern crate gl;
 #[macro_use]
 extern crate lazy_static;
@@ -54,17 +55,38 @@ pub use sketch::*;
 pub use triangle::*;
 pub use utils::*;
 
+use game_time::*;
+
 use std::thread;
 
-pub fn run_sketch(setup: fn(), draw: fn()) {
+pub fn run_sketch(setup: fn(), draw: fn(), log: bool) {
     let rx = channel::make_channel();
 
     glapp::setup();
     thread::spawn(move || {
         setup();
 
+        let mut clock = GameClock::new();
+        let mut counter = FrameCounter::new(
+            60.0,
+            framerate::sample::RunningAverageSampler::with_max_samples(60),
+        );
+        let mut time = clock.last_frame_time().clone();
+
         let mut running = true;
         while running {
+            if log {
+                time = clock.tick(&step::FixedStep::new(&counter));
+                counter.tick(&time);
+                if time.frame_number() % 60 == 0 {
+                    println!(
+                        "Frame #{} at time={:?} fps={:.3}",
+                        time.frame_number(),
+                        time.total_game_time(),
+                        counter.average_frame_rate()
+                    );
+                }
+            }
             // FIXME: need a backchannel for events from the event loop polling
             glapp::poll_events();
             draw_background();
