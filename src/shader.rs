@@ -31,15 +31,18 @@ use std::str;
 
 pub const DEFAULT_VERTEX_SHADER: &'static str = "#version 330 core\n\
     in vec3 position;\n\
+    in vec4 a_color;\n\
+    out vec4 color;\n\
     void main() {\n\
-        gl_Position = vec4(position, 1.0);\n\
+        gl_Position = vec4(position.x, position.y, position.z, 1.0);\n\
+        color = a_color;\n\
     }";
 
 pub const DEFAULT_FRAGMENT_SHADER: &'static str = "#version 330 core\n\
-    uniform vec4 in_color;\n\
-    out vec4 out_color;\n\
+    in vec4 color;\n\
+    out vec4 frag_color;\n\
     void main() {\n\
-        out_color = in_color;\n\
+        frag_color = color;\n\
     }";
 
 pub fn compile_shader(src: &str, shader_type: GLenum) -> GLuint {

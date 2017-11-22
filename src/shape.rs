@@ -33,9 +33,10 @@ use utils::*;
 use gl::types::*;
 use gl;
 
-use std::mem;
-use std::ptr;
 use std::ffi::CString;
+use std::mem::size_of;
+use std::os::raw::c_void;
+use std::ptr;
 
 pub trait Shape {
     fn points(&self) -> Vec<Point>;
@@ -73,6 +74,13 @@ fn make_triangle(vertex_data: &Vec<GLfloat>, index_data: &Vec<GLuint>, shader_pr
     let mut vbo = 0;
     let mut ebo = 0;
 
+    let mut vbo_data: Vec<GLfloat> = Vec::new();
+    for i in 0..index_data.len() {
+        for j in 0..3 {
+            vbo_data.push(vertex_data[i*3+j]);
+        }
+        vbo_data.extend_from_slice(color.as_slice());
+    }
     unsafe {
         gl::GenVertexArrays(1, &mut vao);
         gl::BindVertexArray(vao);
@@ -81,8 +89,8 @@ fn make_triangle(vertex_data: &Vec<GLfloat>, index_data: &Vec<GLuint>, shader_pr
         gl::BindBuffer(gl::ARRAY_BUFFER, vbo);
         gl::BufferData(
             gl::ARRAY_BUFFER,
-            (vertex_data.len() * mem::size_of::<GLfloat>()) as GLsizeiptr,
-            mem::transmute(&vertex_data[0]),
+            (vbo_data.len() * size_of::<GLfloat>()) as GLsizeiptr,
+            vbo_data.as_ptr() as *const c_void,
             gl::STATIC_DRAW,
         );
 
@@ -90,8 +98,8 @@ fn make_triangle(vertex_data: &Vec<GLfloat>, index_data: &Vec<GLuint>, shader_pr
         gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, ebo);
         gl::BufferData(
             gl::ELEMENT_ARRAY_BUFFER,
-            (index_data.len() * mem::size_of::<GLuint>()) as GLsizeiptr,
-            mem::transmute(&index_data[0]),
+            (index_data.len() * size_of::<GLuint>()) as GLsizeiptr,
+            index_data.as_ptr() as *const c_void,
             gl::STATIC_DRAW,
         );
 
@@ -102,18 +110,22 @@ fn make_triangle(vertex_data: &Vec<GLfloat>, index_data: &Vec<GLuint>, shader_pr
             3,
             gl::FLOAT,
             gl::FALSE as GLboolean,
-            3 * mem::size_of::<GLfloat>() as GLint,
+            7 * size_of::<GLfloat>() as GLint,
             ptr::null(),
         );
         gl::EnableVertexAttribArray(pos_attr as GLuint);
 
         // Specify the color
-        let color_uniform = gl::GetUniformLocation(*shader_program, CString::new("in_color").unwrap().as_ptr());
-        gl::Uniform4fv(
-            color_uniform as GLint,
-            1,
-            color.as_ptr(),
+        let col_attr = gl::GetAttribLocation(*shader_program, CString::new("a_color").unwrap().as_ptr());
+        gl::VertexAttribPointer(
+            col_attr as GLuint,
+            4,
+            gl::FLOAT,
+            gl::FALSE as GLboolean,
+            7 * size_of::<GLfloat>() as GLint,
+            (3 * size_of::<GLfloat>()) as *const c_void,
         );
+        gl::EnableVertexAttribArray(col_attr as GLuint);
     }
 
     (vao, vbo, ebo)
