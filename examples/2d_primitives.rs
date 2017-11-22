@@ -82,28 +82,28 @@ fn draw() {
         t += 0.03;
     }
     let triCenter = point_on_circle(&origin, radius, sin, cos);
-    fill((1.0, 0.0, 0.0, 1.0).into());
+    fill((1.0, 0.0, 0.0, 1.0));
     triangle(triCenter + p1, triCenter + p2, triCenter + p3);
     unsafe {
         sin = (t + std::f32::consts::FRAC_PI_2).sin();
         cos = (t + std::f32::consts::FRAC_PI_2).cos();
     }
     let ellipseCenter = point_on_circle(&origin, radius, sin, cos);
-    fill((0.0, 1.0, 0.0, 1.0).into());
+    fill((0.0, 1.0, 0.0, 1.0));
     ellipse(ellipseCenter, 200.0, 100.0);
     unsafe {
         sin = (t + std::f32::consts::PI).sin();
         cos = (t + std::f32::consts::PI).cos();
     }
     let rectCenter = point_on_circle(&origin, radius, sin, cos);
-    fill((0.0, 0.0, 1.0, 1.0).into());
+    fill((0.0, 0.0, 1.0, 1.0));
     rect(rectCenter + tl, rectCenter + br);
 
     strokeWeight(10);
-    stroke((1.0, 1.0, 0.0, 1.0).into());
+    stroke((1.0, 1.0, 0.0, 1.0));
     line((-100.0, -50.0, 0.0), (100.0, 50.0, 0.0));
 
-    stroke((0.0, 1.0, 1.0, 1.0).into());
+    stroke((0.0, 1.0, 1.0, 1.0));
     point(origin);
 }
 
