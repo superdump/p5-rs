@@ -93,6 +93,8 @@ pub fn run_sketch(setup: fn(), draw: fn(), log: bool) {
             draw_background();
             draw();
 
+            glapp::render();
+
             glapp::swap_buffers();
             channel::send();
         }
