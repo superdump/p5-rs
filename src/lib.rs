@@ -80,9 +80,10 @@ pub fn run_sketch(setup: fn(), draw: fn(), log: bool) {
                 counter.tick(&time);
                 if time.frame_number() % 60 == 0 {
                     println!(
-                        "Frame #{} at time={:?} fps={:.3}",
+                        "Frame #{} at frame_time={:.3}s wall_time={:.3}s fps={:.3}",
                         time.frame_number(),
-                        time.total_game_time(),
+                        time.total_game_time().as_seconds(),
+                        clock.total_wall_time().as_seconds(),
                         counter.average_frame_rate()
                     );
                 }
