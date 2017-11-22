@@ -49,7 +49,7 @@ fn setup() {
     let between = Range::new(-((WIDTH/2) as f32), (WIDTH/2) as f32);
     let mut rng = rand::thread_rng();
     let mut ps = Vec::with_capacity(N_OBJECTS);
-    for i in 0..N_OBJECTS {
+    for _ in 0..N_OBJECTS {
         ps.push(Point::new(
             between.ind_sample(&mut rng),
             between.ind_sample(&mut rng),
