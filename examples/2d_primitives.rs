@@ -86,7 +86,7 @@ fn draw() {
     triangle(triCenter + p1, triCenter + p2, triCenter + p3);
     unsafe {
         sin = (t + std::f32::consts::FRAC_PI_2).sin();
-        cos = (t + std::f32::consts::FRAC_PI_2).cos();
+        cos = (t + std::f32::consts::FRAC_PI_2).sin();
     }
     let ellipseCenter = point_on_circle(&origin, radius, sin, cos);
     fill((0.0, 1.0, 0.0, 1.0));
