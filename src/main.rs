@@ -108,5 +108,5 @@ fn draw() {
 }
 
 fn main() {
-    run_sketch(setup, draw);
+    run_sketch(setup, draw, true);
 }
