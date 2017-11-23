@@ -39,12 +39,7 @@ const HEIGHT: u32 = 800;
 
 fn setup() {
     size(WIDTH, HEIGHT);
-    background(Color {
-        r: 0.2,
-        g: 0.2,
-        b: 0.2,
-        a: 1.0,
-    });
+    background(0.2);
 
     let between = Range::new(-((WIDTH/2) as f32), (WIDTH/2) as f32);
     let mut rng = rand::thread_rng();
@@ -62,7 +57,7 @@ fn setup() {
 }
 
 fn draw() {
-    fill((1.0, 1.0, 1.0, 1.0));
+    fill(1.0);
     unsafe {
         if let Some(ref ps) = points {
             for p in ps {
