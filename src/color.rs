@@ -51,6 +51,28 @@ impl From<(f32, f32, f32, f32)> for Color {
     }
 }
 
+impl From<(f32, f32, f32)> for Color {
+    fn from(p: (f32, f32, f32)) -> Self {
+        Color {
+            r: p.0,
+            g: p.1,
+            b: p.2,
+            a: 1.0,
+        }
+    }
+}
+
+impl From<f32> for Color {
+    fn from(p: f32) -> Self {
+        Color {
+            r: p,
+            g: p,
+            b: p,
+            a: 1.0,
+        }
+    }
+}
+
 pub fn draw_background() {
     channel::push(Box::new(move || {
         glapp::background(&SKETCH.lock().unwrap().background.clone());
