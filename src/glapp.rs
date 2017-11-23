@@ -221,6 +221,10 @@ impl GLApp {
         }
 
         gl::load_with(|symbol| self.gl_window.get_proc_address(symbol) as *const _);
+        unsafe {
+            gl::BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
+            gl::Enable(gl::BLEND);
+        }
 
         let vertex_shader = compile_shader(&DEFAULT_VERTEX_SHADER, gl::VERTEX_SHADER);
         let fragment_shader = compile_shader(&DEFAULT_FRAGMENT_SHADER, gl::FRAGMENT_SHADER);
