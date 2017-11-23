@@ -62,7 +62,7 @@ fn setup() {
 }
 
 fn draw() {
-    fill((1.0, 1.0, 1.0, 1.0).into());
+    fill((1.0, 1.0, 1.0, 1.0));
     unsafe {
         if let Some(ref ps) = points {
             for p in ps {
