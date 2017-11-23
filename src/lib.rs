@@ -75,25 +75,28 @@ pub fn run_sketch(setup: fn(), draw: fn(), log: bool) {
 
         let mut running = true;
         while running {
+            // FIXME: need a backchannel for events from the event loop polling
+            glapp::poll_events();
+
             if log {
                 time = clock.tick(&step::FixedStep::new(&counter));
                 counter.tick(&time);
-                if time.frame_number() % 60 == 0 {
-                    println!(
-                        "Frame #{} at frame_time={:.3}s wall_time={:.3}s fps={:.3}",
-                        time.frame_number(),
-                        time.total_game_time().as_seconds(),
-                        clock.total_wall_time().as_seconds(),
-                        counter.average_frame_rate()
-                    );
-                }
             }
-            // FIXME: need a backchannel for events from the event loop polling
-            glapp::poll_events();
             draw_background();
             draw();
 
             glapp::render();
+            if log && time.frame_number() % 60 == 0 {
+                println!(
+                    "Frame #{} at sketch_time={:.3}s wall_time={:.3}s frame_time={:.3}ms fps(mean)={:.3} fps={:.3}",
+                    time.frame_number(),
+                    time.total_game_time().as_seconds(),
+                    clock.total_wall_time().as_seconds(),
+                    time.elapsed_time_since_frame_start().as_milliseconds(),
+                    counter.average_frame_rate(),
+                    time.instantaneous_frame_rate(),
+                );
+            }
 
             glapp::swap_buffers();
             channel::send();
