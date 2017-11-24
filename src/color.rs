@@ -92,7 +92,7 @@ pub fn get_fill() -> Color {
     SKETCH.lock().unwrap().fill.clone()
 }
 
-pub fn no_fill() {
+pub fn noFill() {
     SKETCH.lock().unwrap().fill = Color {
         r: 0.0,
         g: 0.0,
@@ -109,7 +109,7 @@ pub fn get_stroke() -> Color {
     SKETCH.lock().unwrap().stroke.clone()
 }
 
-pub fn no_stroke() {
+pub fn noStroke() {
     SKETCH.lock().unwrap().stroke = Color {
         r: 0.0,
         g: 0.0,
