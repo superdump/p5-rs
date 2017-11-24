@@ -7,7 +7,7 @@
 * Optimizations
     * Cache shapes
         * Tested hack that uploads geometry once and reuses it every frame
-            * 100k triangles at 10fps, 1M triangles at 1fps
+            * Enables 10x more triangles: 100k triangles at 10fps, 1M triangles at 1fps
         * Bounded-size LRU, disallowing removal of shapes that are in the current frame
 * Infrastructure
     * `loop()`, `noLoop()`
