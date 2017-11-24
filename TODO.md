@@ -33,6 +33,8 @@
     * Channel incurs many context switches? Queue up closures and dispatch in one go.
     * Upload all geometry data for a single frame in one vertex and one index buffer
         * 10k triangles went from ~3fps to ~10fps
+    * Draw using triangle strips instead of triangles. This reduces the number of calls to glDrawElements significantly for complex shapes such as ellipses.
+        * 10k ellipses went from ~1.8fps to ~6fps
 * Infrastructure
     * `setup()`, `draw()`
 * Global state
