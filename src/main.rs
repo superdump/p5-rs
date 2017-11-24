@@ -57,14 +57,14 @@ fn setup() {
 }
 
 fn draw() {
-    fill(1.0);
+    fill((1.0, 1.0, 1.0, 0.3));
     unsafe {
         if let Some(ref ps) = points {
             for p in ps {
-                triangle(
+                ellipse(
                     *p,
-                    Point::new(p.x + 3.0, p.y + 3.0, p.z),
-                    Point::new(p.x + 6.0, p.y, p.z),
+                    6.0,
+                    12.0,
                 );
             }
         }
