@@ -393,7 +393,7 @@ pub fn append_shape(shader_program: GLuint, n_triangles: u32) {
             n_triangles,
         });
     }
-    *INDEX_BYTES_OFFSET.lock().unwrap() += (n_triangles * 3 * size_of::<GLuint>() as u32) as GLuint;
+    *INDEX_BYTES_OFFSET.lock().unwrap() += ((n_triangles + 2) * size_of::<GLuint>() as u32) as GLuint;
 }
 
 fn drain_shapes() -> Vec<GLShape> {
@@ -421,14 +421,12 @@ pub fn render() {
             gl::BindVertexArray(vao);
             for shape in shapes {
                 gl::UseProgram(shape.shader_program);
-                for i in 0..shape.n_triangles {
-                    let offset = shape.index_byte_offset + i * 3 * size_of::<GLuint>() as u32;
-                    gl::DrawElements(
-                        gl::TRIANGLES,
-                        3,
-                        gl::UNSIGNED_INT,
-                        offset as *const c_void);
-                }
+                gl::DrawElements(
+                    gl::TRIANGLE_STRIP,
+                    (shape.n_triangles + 2) as GLsizei,
+                    gl::UNSIGNED_INT,
+                    shape.index_byte_offset as *const c_void
+                );
                 if shape.shader_program != default_shader_program {
                     gl::DeleteProgram(shape.shader_program);
                 }

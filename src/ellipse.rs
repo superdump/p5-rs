@@ -36,60 +36,57 @@ pub fn ellipse<P: Into<Point>>(center: P, width: f32, height: f32) {
 
 pub struct Ellipse {
     points: Vec<Point>,
-    indices: Vec<Vec<u32>>,
+    indices: Vec<u32>,
     is_stroke: bool,
 }
 
 impl Ellipse {
-    pub fn new(center: Point, width: f32, height: f32, n_segments: u32, is_stroke: bool) -> Ellipse {
-        let mut points: Vec<Point> = Vec::new();
-        let mut indices: Vec<Vec<u32>> = Vec::new();
-
+    pub fn new(
+        center: Point,
+        width: f32,
+        height: f32,
+        n_segments: u32,
+        is_stroke: bool,
+    ) -> Ellipse {
         let a = width * 0.5;
         let b = height * 0.5;
 
         let point_from_angle = |angle: f32| -> Point {
             Point {
-                x: a * angle.cos(),
-                y: b * angle.sin(),
+                x: a * angle.sin(),
+                y: b * angle.cos(),
                 z: 0.0,
             }
         };
 
-        points.push(center.clone());
-        points.push(center + point_from_angle(0.0f32));
+        let mut points: Vec<Point> = Vec::new();
+        points.push(center + point_from_angle(-0.5 * PI));
         let da = 2.0 * PI / (n_segments as f32);
-        for i in 1..n_segments/2 {
-            let p = point_from_angle((i as f32) * da);
-            points.push(center + Point {x: p.x, y: -p.y, z: p.z});
+        for i in 1..n_segments / 2 {
+            let p = point_from_angle(-0.5 * PI + (i as f32) * da);
+            points.push(
+                center + Point {
+                    x: p.x,
+                    y: -p.y,
+                    z: p.z,
+                },
+            );
             points.push(center + p);
         }
-        points.push(center + point_from_angle(PI));
+        points.push(center + point_from_angle(0.5 * PI));
 
         /* e.g.
          * n_segments = 6
          * always anti-clockwise through vertices
          *
-         *  5 3
-         * 6 0 1
-         *  4 2
+         *  2 4
+         * 0   5
+         *  1 3
          *
-         * 0,1,3
-         * 0,2,1
-         * 0,3,5
-         * 0,4,2
-         * 0,5,6
-         * 0,6,4
+         * 0,1,2,3,4,5 as a triangle strip
          */
 
-        indices.push(vec![0, 1, 3]);
-        indices.push(vec![0, 2, 1]);
-        for i in 1..(n_segments/2)-1 {
-            indices.push(vec![0, 2*i+1, 2*i+3]);
-            indices.push(vec![0, 2*i+2, 2*i]);
-        }
-        indices.push(vec![0, n_segments-1, n_segments]);
-        indices.push(vec![0, n_segments, n_segments-2]);
+        let indices: Vec<u32> = (0..n_segments).collect();
 
         Ellipse {
             points,
@@ -103,7 +100,7 @@ impl Shape for Ellipse {
     fn points(&self) -> Vec<Point> {
         self.points.clone()
     }
-    fn indices(&self) -> Vec<Vec<u32>> {
+    fn indices(&self) -> Vec<u32> {
         self.indices.clone()
     }
     fn vertex_shader(&self) -> String {

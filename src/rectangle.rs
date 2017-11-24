@@ -61,7 +61,7 @@ impl Rectangle {
             bottom_left = top_left + clockwise;
             top_right = bottom_right + anticlockwise;
             top_left = top_left + anticlockwise;
-            bottom_right  = bottom_right + clockwise;
+            bottom_right = bottom_right + clockwise;
         } else {
             bottom_left = Point {
                 x: top_left.x,
@@ -75,7 +75,7 @@ impl Rectangle {
             };
         }
         Rectangle {
-            points: vec![top_left, bottom_right, top_right, bottom_left],
+            points: vec![top_left, bottom_left, top_right, bottom_right],
             is_stroke,
         }
     }
@@ -85,8 +85,8 @@ impl Shape for Rectangle {
     fn points(&self) -> Vec<Point> {
         self.points.clone()
     }
-    fn indices(&self) -> Vec<Vec<u32>> {
-        vec![vec![0, 1, 2], vec![0, 3, 1]]
+    fn indices(&self) -> Vec<u32> {
+        vec![0, 1, 2, 3]
     }
     fn vertex_shader(&self) -> String {
         String::from("")
