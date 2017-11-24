@@ -160,6 +160,7 @@ impl Grid {
         if neighbors.is_empty() {
             if self.stack.is_empty() {
                 self.visited = vec![false; (self.cols * self.rows) as usize];
+                self.current = Index::new(-1, -1);
                 println!("Maze generated");
                 self.generating = false;
                 return
