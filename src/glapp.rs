@@ -347,10 +347,11 @@ pub fn points_to_vertices(points: &Vec<Point>) -> Vec<GLfloat> {
 // color is rgba as 4 GLfloat (16 bytes)
 // the stride is therefore 7 GLfloat (28 bytes)
 const VBO_STRIDE_N: usize = 7;
+pub fn append_vertices(points: &Vec<Point>, color: &Color) -> usize {
     let vertex_data = points_to_vertices(points);
-    let mut total_vertices_before: u32 = 0;
+    let mut total_vertices_before = 0;
     if let Some(ref mut vertices) = *VERTICES.lock().unwrap() {
-        total_vertices_before = vertices.len() as u32 / VBO_STRIDE_N;
+        total_vertices_before = vertices.len() / VBO_STRIDE_N;
         let count = vertex_data.len() / 3;
         for i in 0..count {
             let offset = i * 3;
@@ -368,10 +369,10 @@ fn drain_vertices() -> Vec<GLfloat> {
     Vec::new()
 }
 
-pub fn append_indices(offset: u32, index_data: Vec<u32>) {
+pub fn append_indices(offset: usize, index_data: Vec<u32>) {
     if let Some(ref mut indices) = *INDICES.lock().unwrap() {
         for index in index_data {
-            indices.push(offset + index);
+            indices.push(offset as u32 + index);
         }
     }
 }
