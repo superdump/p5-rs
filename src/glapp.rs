@@ -297,7 +297,7 @@ fn create_objects(vertex_data: &Vec<GLfloat>, index_data: &Vec<GLuint>) -> (GLui
             3,
             gl::FLOAT,
             gl::FALSE as GLboolean,
-            7 * size_of::<GLfloat>() as GLint,
+            (VBO_STRIDE_N * size_of::<GLfloat>()) as GLint,
             ptr::null(),
         );
         gl::EnableVertexAttribArray(pos_attr);
@@ -309,7 +309,7 @@ fn create_objects(vertex_data: &Vec<GLfloat>, index_data: &Vec<GLuint>) -> (GLui
             4,
             gl::FLOAT,
             gl::FALSE as GLboolean,
-            7 * size_of::<GLfloat>() as GLint,
+            (VBO_STRIDE_N * size_of::<GLfloat>()) as GLint,
             (3 * size_of::<GLfloat>()) as *const c_void,
         );
         gl::EnableVertexAttribArray(col_attr);
@@ -346,10 +346,11 @@ pub fn points_to_vertices(points: &Vec<Point>) -> Vec<GLfloat> {
 // vertex is xyz as 3 GLfloat (12 bytes)
 // color is rgba as 4 GLfloat (16 bytes)
 // the stride is therefore 7 GLfloat (28 bytes)
+const VBO_STRIDE_N: usize = 7;
     let vertex_data = points_to_vertices(points);
     let mut total_vertices_before: u32 = 0;
     if let Some(ref mut vertices) = *VERTICES.lock().unwrap() {
-        total_vertices_before = vertices.len() as u32 / 7;
+        total_vertices_before = vertices.len() as u32 / VBO_STRIDE_N;
         let count = vertex_data.len() / 3;
         for i in 0..count {
             let offset = i * 3;
