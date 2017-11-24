@@ -69,7 +69,7 @@ pub fn run_sketch(setup: fn(), draw: fn(), log: bool) {
         let mut clock = GameClock::new();
         let mut counter = FrameCounter::new(
             60.0,
-            framerate::sample::RunningAverageSampler::with_max_samples(60),
+            framerate::sample::LinearAverageSampler::with_max_samples(60),
         );
         let mut time = clock.last_frame_time().clone();
 
