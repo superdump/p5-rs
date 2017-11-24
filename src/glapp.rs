@@ -276,7 +276,7 @@ fn create_objects(vertex_data: &Vec<GLfloat>, index_data: &Vec<GLuint>) -> (GLui
             gl::ARRAY_BUFFER,
             (vertex_data.len() * size_of::<GLfloat>()) as GLsizeiptr,
             vertex_data.as_ptr() as *const c_void,
-            gl::STATIC_DRAW,
+            gl::STREAM_DRAW,
         );
 
         gl::GenBuffers(1, &mut ebo);
@@ -285,7 +285,7 @@ fn create_objects(vertex_data: &Vec<GLfloat>, index_data: &Vec<GLuint>) -> (GLui
             gl::ELEMENT_ARRAY_BUFFER,
             (index_data.len() * size_of::<GLuint>()) as GLsizeiptr,
             index_data.as_ptr() as *const c_void,
-            gl::STATIC_DRAW,
+            gl::STREAM_DRAW,
         );
 
         // Specify the layout of the vertex data
