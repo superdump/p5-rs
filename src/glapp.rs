@@ -27,9 +27,11 @@ extern crate libc;
 
 use channel;
 use color::*;
+use point::*;
 use sketch::SKETCH;
 use shader::*;
 use shape::GLShape;
+use utils::map;
 
 use self::glutin::GlContext;
 use gl;
@@ -316,7 +318,30 @@ fn create_objects(vertex_data: &Vec<GLfloat>, index_data: &Vec<GLuint>) -> (GLui
     (vao, vbo, ebo)
 }
 
-pub fn append_vertices(vertex_data: &Vec<GLfloat>, color: &Vec<GLfloat>) -> u32 {
+fn point_to_vertex(point: &Point) -> [GLfloat; 3] {
+    let sketch = SKETCH.lock().unwrap();
+    let max_w = (sketch.width/2) as f64;
+    let min_w = -max_w;
+    let max_h = (sketch.height/2) as f64;
+    let min_h = -max_h;
+    [
+        map(point.x as f64, min_w, max_w, -1.0, 1.0) as GLfloat,
+        map(point.y as f64, min_h, max_h, -1.0, 1.0) as GLfloat,
+        map(point.z as f64, min_h, max_h, -1.0, 1.0) as GLfloat, // FIXME: think about how to convert z
+    ]
+}
+
+pub fn points_to_vertices(points: &Vec<Point>) -> Vec<GLfloat> {
+    let mut vertices = Vec::new();
+    for point in points {
+        let vertex = point_to_vertex(point);
+        vertices.extend_from_slice(&vertex);
+    }
+    vertices
+}
+
+pub fn append_vertices(points: &Vec<Point>, color: &Color) -> u32 {
+    let vertex_data = points_to_vertices(points);
     let mut total_vertices_before: u32 = 0;
     if let Some(ref mut vertices) = *VERTICES.lock().unwrap() {
         total_vertices_before = vertices.len() as u32 / 7;
@@ -324,7 +349,7 @@ pub fn append_vertices(vertex_data: &Vec<GLfloat>, color: &Vec<GLfloat>) -> u32 
         for i in 0..count {
             let offset = i * 3;
             vertices.extend_from_slice(&vertex_data[offset..offset+3]);
-            vertices.extend_from_slice(color.as_slice());
+            vertices.extend_from_slice(color.as_vec4().as_slice());
         }
     }
     total_vertices_before

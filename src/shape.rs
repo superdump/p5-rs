@@ -25,8 +25,6 @@
 use color::*;
 use glapp::*;
 use point::*;
-use sketch::SKETCH;
-use utils::*;
 
 use gl::types::*;
 
@@ -46,41 +44,18 @@ pub trait Shape {
     fn is_stroke(&self) -> bool;
 }
 
-fn point_to_vertex(point: Point) -> [GLfloat; 3] {
-    let sketch = SKETCH.lock().unwrap();
-    let max_w = (sketch.width/2) as f64;
-    let min_w = -max_w;
-    let max_h = (sketch.height/2) as f64;
-    let min_h = -max_h;
-    [
-        map(point.x as f64, min_w, max_w, -1.0, 1.0) as GLfloat,
-        map(point.y as f64, min_h, max_h, -1.0, 1.0) as GLfloat,
-        map(point.z as f64, min_h, max_h, -1.0, 1.0) as GLfloat, // FIXME: think about how to convert z
-    ]
-}
-
-pub fn points_to_vertices(points: Vec<Point>) -> Vec<GLfloat> {
-    let mut vertices = Vec::new();
-    for point in points {
-        let vertex = point_to_vertex(point);
-        vertices.extend_from_slice(&vertex);
-    }
-    vertices
-}
-
 pub fn draw(shape: &Shape) {
     let vertices = shape.points();
-    let vertex_data = points_to_vertices(vertices);
     let index_data = shape.indices();
     let color;
     if shape.is_stroke() {
-        color = get_stroke().as_vec4();
+        color = get_stroke();
     } else {
-        color = get_fill().as_vec4();
+        color = get_fill();
     }
 
     let n_triangles = index_data.len();
-    let total_vertices_before = append_vertices(&vertex_data, &color);
+    let total_vertices_before = append_vertices(&vertices, &color);
     for indices in index_data {
         append_indices(total_vertices_before, indices);
     }
