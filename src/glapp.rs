@@ -340,7 +340,12 @@ pub fn points_to_vertices(points: &Vec<Point>) -> Vec<GLfloat> {
     vertices
 }
 
-pub fn append_vertices(points: &Vec<Point>, color: &Color) -> u32 {
+// vertices are stored as:
+// vertex, color
+// Khronos advise to use 4-byte alignment for vertex attributes
+// vertex is xyz as 3 GLfloat (12 bytes)
+// color is rgba as 4 GLfloat (16 bytes)
+// the stride is therefore 7 GLfloat (28 bytes)
     let vertex_data = points_to_vertices(points);
     let mut total_vertices_before: u32 = 0;
     if let Some(ref mut vertices) = *VERTICES.lock().unwrap() {
