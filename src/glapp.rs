@@ -31,7 +31,7 @@ use point::*;
 use sketch::SKETCH;
 use shader::*;
 use shape::GLShape;
-use utils::map;
+use utils::map_f32;
 
 use self::glutin::GlContext;
 use gl;
@@ -345,14 +345,14 @@ fn create_objects(vertex_data: &Vec<GLfloat>, index_data: &Vec<GLuint>) -> (GLui
 
 fn point_to_vertex(point: &Point) -> [GLfloat; 3] {
     let sketch = SKETCH.lock().unwrap();
-    let max_w = (sketch.width/2) as f64;
+    let max_w = (sketch.width/2) as f32;
     let min_w = -max_w;
-    let max_h = (sketch.height/2) as f64;
+    let max_h = (sketch.height/2) as f32;
     let min_h = -max_h;
     [
-        map(point.x as f64, min_w, max_w, -1.0, 1.0) as GLfloat,
-        map(point.y as f64, min_h, max_h, -1.0, 1.0) as GLfloat,
-        map(point.z as f64, min_h, max_h, -1.0, 1.0) as GLfloat, // FIXME: think about how to convert z
+        map_f32(point.x, min_w, max_w, -1.0, 1.0) as GLfloat,
+        map_f32(point.y, min_h, max_h, -1.0, 1.0) as GLfloat,
+        map_f32(point.z, min_h, max_h, -1.0, 1.0) as GLfloat, // FIXME: think about how to convert z
     ]
 }
 
