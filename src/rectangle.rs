@@ -36,46 +36,54 @@ pub struct Rectangle {
     is_stroke: bool,
 }
 
+pub fn get_rect_points(top_left: Point, bottom_right: Point, is_stroke: bool) -> Vec<Point> {
+    let mut top_left = top_left;
+    let mut bottom_right = bottom_right;
+    let top_right;
+    let bottom_left;
+    if is_stroke {
+        // FIXME: Only works in 2D - need z = 0 to define a plane with the two points
+        let width = get_stroke_weight();
+        let half_width = (width as f32 * 0.5).ceil();
+        let mut anticlockwise: Point = (
+            -(bottom_right.y - top_left.y),
+            bottom_right.x - top_left.x,
+            0.0,
+        ).into();
+        anticlockwise.setMag(half_width);
+        let mut clockwise: Point = (
+            bottom_right.y - top_left.y,
+            -(bottom_right.x - top_left.x),
+            0.0,
+        ).into();
+        clockwise.setMag(half_width);
+        bottom_left = top_left + clockwise;
+        top_right = bottom_right + anticlockwise;
+        top_left = top_left + anticlockwise;
+        bottom_right = bottom_right + clockwise;
+    } else {
+        bottom_left = Point {
+            x: top_left.x,
+            y: bottom_right.y,
+            z: bottom_right.z,
+        };
+        top_right = Point {
+            x: bottom_right.x,
+            y: top_left.y,
+            z: top_left.z,
+        };
+    }
+    vec![top_left, bottom_left, top_right, bottom_right]
+}
+
+pub fn get_rect_uvs() -> Vec<f32> {
+    vec![0.0, 1.0, 0.0, 0.0, 1.0, 1.0, 1.0, 0.0]
+}
+
 impl Rectangle {
     pub fn new(top_left: Point, bottom_right: Point, is_stroke: bool) -> Rectangle {
-        let mut top_left = top_left;
-        let mut bottom_right = bottom_right;
-        let top_right;
-        let bottom_left;
-        if is_stroke {
-            // FIXME: Only works in 2D - need z = 0 to define a plane with the two points
-            let width = get_stroke_weight();
-            let half_width = (width as f32 * 0.5).ceil();
-            let mut anticlockwise: Point = (
-                -(bottom_right.y - top_left.y),
-                bottom_right.x - top_left.x,
-                0.0,
-            ).into();
-            anticlockwise.setMag(half_width);
-            let mut clockwise: Point = (
-                bottom_right.y - top_left.y,
-                -(bottom_right.x - top_left.x),
-                0.0,
-            ).into();
-            clockwise.setMag(half_width);
-            bottom_left = top_left + clockwise;
-            top_right = bottom_right + anticlockwise;
-            top_left = top_left + anticlockwise;
-            bottom_right = bottom_right + clockwise;
-        } else {
-            bottom_left = Point {
-                x: top_left.x,
-                y: bottom_right.y,
-                z: bottom_right.z,
-            };
-            top_right = Point {
-                x: bottom_right.x,
-                y: top_left.y,
-                z: top_left.z,
-            };
-        }
         Rectangle {
-            points: vec![top_left, bottom_left, top_right, bottom_right],
+            points: get_rect_points(top_left, bottom_right, is_stroke),
             is_stroke,
         }
     }
@@ -84,6 +92,9 @@ impl Rectangle {
 impl Shape for Rectangle {
     fn points(&self) -> Vec<Point> {
         self.points.clone()
+    }
+    fn uvs(&self) -> Vec<f32> {
+        get_rect_uvs()
     }
     fn indices(&self) -> Vec<u32> {
         vec![0, 1, 2, 3]
