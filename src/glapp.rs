@@ -38,6 +38,7 @@ use gl;
 use gl::types::*;
 
 use std::cell::RefCell;
+use std::collections::HashMap;
 use std::mem::size_of;
 use std::os::raw::c_void;
 use std::process::exit;
@@ -59,6 +60,7 @@ thread_local! {
 lazy_static! {
     static ref VERTICES: Mutex<Option<Vec<GLfloat>>> = Mutex::new(None);
     static ref INDICES: Mutex<Option<Vec<GLuint>>> = Mutex::new(None);
+    static ref SHADERS: Mutex<Option<HashMap<String, GLuint>>> = Mutex::new(None);
     static ref GL_SHAPES: Mutex<Option<Vec<GLShape>>> = Mutex::new(None);
     static ref INDEX_BYTES_OFFSET: Mutex<u32> = Mutex::new(0);
 }
@@ -74,6 +76,7 @@ pub fn listen(rx: mpsc::Receiver<channel::MessageType>) {
 pub fn setup() {
     *VERTICES.lock().unwrap() = Some(Vec::new());
     *INDICES.lock().unwrap() = Some(Vec::new());
+    *SHADERS.lock().unwrap() = Some(HashMap::new());
     *GL_SHAPES.lock().unwrap() = Some(Vec::new());
     GLAPP.with(|handle| {
         handle.replace(Some(GLApp::new(0, 0)));
@@ -140,6 +143,13 @@ pub fn get_shader_program(vertex_shader_src: String, fragment_shader_src: String
     let mut fragment_shader_src = fragment_shader_src;
     let mut shader_program = get_default_shader_program();
 
+    let concat = format!("{}{}", vertex_shader_src, fragment_shader_src);
+    if let Some(ref mut shaders) = *SHADERS.lock().unwrap() {
+        if let Some(shader_program) = shaders.get(&concat) {
+            return *shader_program
+        }
+    }
+
     if vertex_shader_src.len() > 0 || fragment_shader_src.len() > 0 {
         if vertex_shader_src.len() == 0 {
             vertex_shader_src = String::from(DEFAULT_VERTEX_SHADER);
@@ -161,6 +171,9 @@ pub fn get_shader_program(vertex_shader_src: String, fragment_shader_src: String
         }));
         channel::send();
         shader_program = rx.recv().unwrap();
+    }
+    if let Some(ref mut shaders) = *SHADERS.lock().unwrap() {
+        shaders.insert(concat, shader_program);
     }
     shader_program
 }
@@ -442,14 +455,16 @@ pub fn render() {
                     gl::UNSIGNED_INT,
                     shape.index_byte_offset as *const c_void
                 );
-                if shape.shader_program != default_shader_program {
-                    gl::DeleteProgram(shape.shader_program);
-                }
             }
         }
 
         // cleanup
         unsafe {
+            if let Some(ref mut shaders) = *SHADERS.lock().unwrap() {
+                for (_, shader) in shaders.drain().take(1) {
+                    gl::DeleteProgram(shader);
+                }
+            }
             gl::DeleteBuffers(1, &ebo);
             gl::DeleteBuffers(1, &vbo);
             gl::DeleteVertexArrays(1, &vao);
