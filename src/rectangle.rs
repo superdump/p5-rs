@@ -28,7 +28,7 @@ use shape::Shape;
 use sketch::get_stroke_weight;
 
 pub fn rect<P: Into<Point>>(top_left: P, bottom_right: P) {
-    Rectangle::new(top_left.into(), bottom_right.into(), false).draw();
+    Rectangle::new(top_left.into(), bottom_right.into(), false, false).draw();
 }
 
 pub struct Rectangle {
@@ -36,12 +36,12 @@ pub struct Rectangle {
     is_stroke: bool,
 }
 
-pub fn get_rect_points(top_left: Point, bottom_right: Point, is_stroke: bool) -> Vec<Point> {
+pub fn get_rect_points(top_left: Point, bottom_right: Point, is_line: bool) -> Vec<Point> {
     let mut top_left = top_left;
     let mut bottom_right = bottom_right;
     let top_right;
     let bottom_left;
-    if is_stroke {
+    if is_line {
         // FIXME: Only works in 2D - need z = 0 to define a plane with the two points
         let width = get_stroke_weight();
         let half_width = (width as f32 * 0.5).ceil();
@@ -81,9 +81,9 @@ pub fn get_rect_uvs() -> Vec<f32> {
 }
 
 impl Rectangle {
-    pub fn new(top_left: Point, bottom_right: Point, is_stroke: bool) -> Rectangle {
+    pub fn new(top_left: Point, bottom_right: Point, is_stroke: bool, is_line: bool) -> Rectangle {
         Rectangle {
-            points: get_rect_points(top_left, bottom_right, is_stroke),
+            points: get_rect_points(top_left, bottom_right, is_line),
             is_stroke,
         }
     }

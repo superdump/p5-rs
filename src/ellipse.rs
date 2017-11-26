@@ -49,7 +49,7 @@ impl Ellipse {
         let top_left: Point = center + diagonal;
         let bottom_right: Point = center - diagonal;
         Ellipse {
-            points: get_rect_points(top_left, bottom_right, is_stroke),
+            points: get_rect_points(top_left, bottom_right, false),
             is_stroke,
         }
     }
