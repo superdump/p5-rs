@@ -57,9 +57,15 @@ impl Shape for Triangle {
         self.points.clone()
     }
     fn uvs(&self) -> Vec<f32> {
-        // FIXME: naive left, right, top
-        // Maybe find corners within a bounding rectangle?
-        vec![0.0, 0.0, 1.0, 0.0, 0.5, 1.0]
+        let (l,t,r,b) = bounding_box(&self.points);
+        vec![
+            map_f32(self.points[0].x, l, r, 0.0, 1.0),
+            map_f32(self.points[0].y, b, t, 0.0, 1.0),
+            map_f32(self.points[1].x, l, r, 0.0, 1.0),
+            map_f32(self.points[1].y, b, t, 0.0, 1.0),
+            map_f32(self.points[2].x, l, r, 0.0, 1.0),
+            map_f32(self.points[2].y, b, t, 0.0, 1.0),
+        ]
     }
     fn indices(&self) -> Vec<u32> {
         vec![0, 1, 2]
