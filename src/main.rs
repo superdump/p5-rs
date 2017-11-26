@@ -56,15 +56,13 @@ fn setup() {
 }
 
 fn draw() {
-    fill((1.0, 1.0, 1.0, 0.3));
+    stroke((1.0, 1.0, 1.0, 0.3));
+    strokeWeight(12);
     unsafe {
         if let Some(ref ps) = points {
             let offset: Point = (6.0, -12.0).into();
             for p in ps {
-                rect(
-                    *p,
-                    *p + offset,
-                );
+                point(*p);
             }
         }
     }
