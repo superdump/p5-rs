@@ -58,6 +58,16 @@ impl Point {
     }
 }
 
+impl From<(f32, f32)> for Point {
+    fn from(p: (f32, f32)) -> Self {
+        Point {
+            x: p.0,
+            y: p.1,
+            z: 0.0,
+        }
+    }
+}
+
 impl From<(f32, f32, f32)> for Point {
     fn from(p: (f32, f32, f32)) -> Self {
         Point {
