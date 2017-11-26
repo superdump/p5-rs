@@ -310,9 +310,21 @@ fn create_objects(vertex_data: &Vec<GLfloat>, index_data: &Vec<GLuint>) -> (GLui
             gl::FLOAT,
             gl::FALSE as GLboolean,
             (VBO_STRIDE_N * size_of::<GLfloat>()) as GLint,
-            (3 * size_of::<GLfloat>()) as *const c_void,
+            (5 * size_of::<GLfloat>()) as *const c_void,
         );
         gl::EnableVertexAttribArray(col_attr);
+
+        // Specify the UVs
+        let uv_attr: GLuint = 2;
+        gl::VertexAttribPointer(
+            uv_attr,
+            2,
+            gl::FLOAT,
+            gl::FALSE as GLboolean,
+            (VBO_STRIDE_N * size_of::<GLfloat>()) as GLint,
+            (3 * size_of::<GLfloat>()) as *const c_void,
+        );
+        gl::EnableVertexAttribArray(uv_attr);
     }
 
     (vao, vbo, ebo)
@@ -344,18 +356,21 @@ pub fn points_to_vertices(points: &Vec<Point>) -> Vec<GLfloat> {
 // vertex, color
 // Khronos advise to use 4-byte alignment for vertex attributes
 // vertex is xyz as 3 GLfloat (12 bytes)
+// uv is uv as 2 GLfloat (8 bytes)
 // color is rgba as 4 GLfloat (16 bytes)
-// the stride is therefore 7 GLfloat (28 bytes)
-const VBO_STRIDE_N: usize = 7;
-pub fn append_vertices(points: &Vec<Point>, color: &Color) -> usize {
+// the stride is therefore 9 GLfloat (36 bytes)
+const VBO_STRIDE_N: usize = 9;
+pub fn append_vertices(points: &Vec<Point>, uvs: &Vec<f32>, color: &Color) -> usize {
     let vertex_data = points_to_vertices(points);
     let mut total_vertices_before = 0;
     if let Some(ref mut vertices) = *VERTICES.lock().unwrap() {
         total_vertices_before = vertices.len() / VBO_STRIDE_N;
         let count = vertex_data.len() / 3;
         for i in 0..count {
-            let offset = i * 3;
-            vertices.extend_from_slice(&vertex_data[offset..offset+3]);
+            let vd_offset = i * 3;
+            vertices.extend_from_slice(&vertex_data[vd_offset..vd_offset+3]);
+            let uv_offset = i * 2;
+            vertices.extend_from_slice(&uvs[uv_offset..uv_offset+2]);
             vertices.extend_from_slice(color.as_vec4().as_slice());
         }
     }
