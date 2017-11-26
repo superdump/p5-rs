@@ -1,9 +1,5 @@
 ## TODO
 
-* Bugs
-    * Check curl (vector cross product) of 2 triangle edges?
-        * Not needed if we always draw both sides.
-        * If a sketch had a 2D mode then we could only draw the face pointing in positive z.
 * Optimizations
     * Cache shapes
         * Tested hack that uploads geometry once and reuses it every frame
@@ -27,6 +23,9 @@
 
 * Bugs
     * Closing the window and pressing escape should gracefully quit the application
+    * Check winding order of triangle vertices?
+        * Not needed if we always draw both sides.
+        * If a sketch had a 2D mode then we could only draw the face pointing in positive z.
 * Optimizations
     * Avoid re-compiling and re-linking default shaders
     * Limit to VSync?
