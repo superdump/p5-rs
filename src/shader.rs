@@ -32,14 +32,18 @@ use std::str;
 pub const DEFAULT_VERTEX_SHADER: &'static str = "#version 330 core\n\
     layout (location = 0) in vec3 position;\n\
     layout (location = 1) in vec4 a_color;\n\
+    layout (location = 2) in vec2 uv;\n\
     out vec4 color;\n\
+    out vec2 tex_coord;\n\
     void main() {\n\
         gl_Position = vec4(position.x, position.y, position.z, 1.0);\n\
         color = a_color;\n\
+        tex_coord = uv;\n\
     }";
 
 pub const DEFAULT_FRAGMENT_SHADER: &'static str = "#version 330 core\n\
     in vec4 color;\n\
+    in vec2 tex_coord;\n\
     out vec4 frag_color;\n\
     void main() {\n\
         frag_color = color;\n\
