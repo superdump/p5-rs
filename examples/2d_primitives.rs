@@ -67,7 +67,7 @@ fn point_on_circle(center: &Point, radius: f32, sin: f32, cos: f32) -> Point {
 }
 
 fn draw() {
-    let origin = Point::new(0.0, 0.0, 0.0);
+    let origin: Point = (0.0, 0.0).into();
     let radius: f32 = 100.0;
     let mut sin: f32;
     let mut cos: f32;

@@ -43,13 +43,12 @@ fn setup() {
 
     let between = Range::new(-((WIDTH/2) as f32), (WIDTH/2) as f32);
     let mut rng = rand::thread_rng();
-    let mut ps = Vec::with_capacity(N_OBJECTS);
+    let mut ps: Vec<Point> = Vec::with_capacity(N_OBJECTS);
     for _ in 0..N_OBJECTS {
-        ps.push(Point::new(
+        ps.push((
             between.ind_sample(&mut rng),
-            between.ind_sample(&mut rng),
-            0.0
-        ));
+            between.ind_sample(&mut rng)
+        ).into());
     }
     unsafe {
         points = Some(ps);
@@ -60,11 +59,11 @@ fn draw() {
     fill((1.0, 1.0, 1.0, 0.3));
     unsafe {
         if let Some(ref ps) = points {
+            let offset: Point = (6.0, -12.0).into();
             for p in ps {
-                ellipse(
+                rect(
                     *p,
-                    6.0,
-                    12.0,
+                    *p + offset,
                 );
             }
         }

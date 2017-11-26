@@ -44,9 +44,11 @@ struct Cell {
 
 impl Cell {
     fn new(top_left: Point, width: f32, height: f32) -> Cell {
-        let top_right = top_left + Point::new(width, 0.0, 0.0);
-        let bottom_right = top_left + Point::new(width, -height, 0.0);
-        let bottom_left = top_left + Point::new(0.0, -height, 0.0);
+        let right: Point = (width, 0.0).into();
+        let down: Point = (0.0, -height).into();
+        let top_right = top_left + right;
+        let bottom_right = top_left + right + down;
+        let bottom_left = top_left + down;
         Cell {
             corners: vec![top_left, top_right, bottom_right, bottom_left],
             walls: vec![true, true, true, true],
@@ -240,11 +242,10 @@ fn index(i: i32, j: i32) -> usize {
 }
 
 fn cell_to_point(i: i32, j: i32) -> Point {
-    Point::new(
+    (
         (-WIDTH/2 + i * CELL_WIDTH) as f32,
         (HEIGHT/2 - j * CELL_HEIGHT) as f32,
-        0.0,
-    )
+    ).into()
 }
 
 fn setup() {
