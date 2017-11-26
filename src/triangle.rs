@@ -26,8 +26,8 @@ use point::*;
 use shape;
 use shape::Shape;
 
-pub fn triangle<P: Into<Point>>(left: P, top: P, right: P) {
-    Triangle::new(left.into(), top.into(), right.into()).draw();
+pub fn triangle<P: Into<Point>>(left: P, right: P, top: P) {
+    Triangle::new(left.into(), right.into(), top.into()).draw();
 }
 
 pub struct Triangle {
@@ -35,9 +35,9 @@ pub struct Triangle {
 }
 
 impl Triangle {
-    pub fn new(left: Point, top: Point, right: Point) -> Triangle {
+    pub fn new(left: Point, right: Point, top: Point) -> Triangle {
         Triangle {
-            points: vec![left, top, right],
+            points: vec![left, right, top],
         }
     }
 }
@@ -47,9 +47,9 @@ impl Shape for Triangle {
         self.points.clone()
     }
     fn uvs(&self) -> Vec<f32> {
-        // FIXME: naive left, top, right
+        // FIXME: naive left, right, top
         // Maybe find corners within a bounding rectangle?
-        vec![0.0, 0.0, 0.5, 1.0, 1.0, 0.0]
+        vec![0.0, 0.0, 1.0, 0.0, 0.5, 1.0]
     }
     fn indices(&self) -> Vec<u32> {
         vec![0, 1, 2]
