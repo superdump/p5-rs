@@ -26,7 +26,7 @@ use ellipse::*;
 use shape::Shape;
 use sketch::get_stroke_weight;
 
-use std::ops::Add;
+use std::ops::{Add, Sub};
 
 pub fn point<P: Into<Point>>(point: P) {
     let diameter = get_stroke_weight();
@@ -123,6 +123,18 @@ impl Add for Point {
             x: self.x + other.x,
             y: self.y + other.y,
             z: self.z + other.z,
+        }
+    }
+}
+
+impl Sub for Point {
+    type Output = Point;
+
+    fn sub(self, other: Point) -> Point {
+        Point {
+            x: self.x - other.x,
+            y: self.y - other.y,
+            z: self.z - other.z,
         }
     }
 }
