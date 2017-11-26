@@ -37,6 +37,7 @@ pub struct GLShape {
 
 pub trait Shape {
     fn points(&self) -> Vec<Point>;
+    fn uvs(&self) -> Vec<f32>;
     fn indices(&self) -> Vec<u32>;
     fn vertex_shader(&self) -> String;
     fn fragment_shader(&self) -> String;
@@ -46,6 +47,7 @@ pub trait Shape {
 
 pub fn draw(shape: &Shape) {
     let vertices = shape.points();
+    let uvs = shape.uvs();
     let color;
     if shape.is_stroke() {
         color = get_stroke();
@@ -55,7 +57,7 @@ pub fn draw(shape: &Shape) {
 
     let indices = shape.indices();
     let n_triangles = indices.len() - 2;
-    let total_vertices_before = append_vertices(&vertices, &color);
+    let total_vertices_before = append_vertices(&vertices, &uvs, &color);
     append_indices(total_vertices_before, indices);
     let shader_program = get_shader_program(
         shape.vertex_shader(),
