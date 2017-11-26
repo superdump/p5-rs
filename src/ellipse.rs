@@ -23,20 +23,16 @@
  */
 
 use point::*;
+use rectangle::{get_rect_points, get_rect_uvs};
 use shape;
 use shape::Shape;
 
-use std::f32::consts::*;
-
-const N_SEGMENTS: u32 = 64;
-
 pub fn ellipse<P: Into<Point>>(center: P, width: f32, height: f32) {
-    Ellipse::new(center.into(), width, height, N_SEGMENTS, false).draw();
+    Ellipse::new(center.into(), width, height, false).draw();
 }
 
 pub struct Ellipse {
     points: Vec<Point>,
-    indices: Vec<u32>,
     is_stroke: bool,
 }
 
@@ -45,69 +41,60 @@ impl Ellipse {
         center: Point,
         width: f32,
         height: f32,
-        n_segments: u32,
         is_stroke: bool,
     ) -> Ellipse {
-        let a = width * 0.5;
-        let b = height * 0.5;
-
-        let point_from_angle = |angle: f32| -> Point {
-            Point {
-                x: a * angle.sin(),
-                y: b * angle.cos(),
-                z: 0.0,
-            }
-        };
-
-        let mut points: Vec<Point> = Vec::new();
-        points.push(center + point_from_angle(-0.5 * PI));
-        let da = 2.0 * PI / (n_segments as f32);
-        for i in 1..n_segments / 2 {
-            let p = point_from_angle(-0.5 * PI + (i as f32) * da);
-            points.push(
-                center + Point {
-                    x: p.x,
-                    y: -p.y,
-                    z: p.z,
-                },
-            );
-            points.push(center + p);
-        }
-        points.push(center + point_from_angle(0.5 * PI));
-
-        /* e.g.
-         * n_segments = 6
-         * always anti-clockwise through vertices
-         *
-         *  2 4
-         * 0   5
-         *  1 3
-         *
-         * 0,1,2,3,4,5 as a triangle strip
-         */
-
-        let indices: Vec<u32> = (0..n_segments).collect();
-
+        let half_width = 0.5 * width;
+        let half_height = 0.5 * height;
+        let diagonal: Point = (-half_width, half_height).into();
+        let top_left: Point = center + diagonal;
+        let bottom_right: Point = center - diagonal;
         Ellipse {
-            points,
-            indices,
+            points: get_rect_points(top_left, bottom_right, is_stroke),
             is_stroke,
         }
     }
 }
 
+const VERTEX_SHADER: &'static str = "#version 330 core\n\
+    layout (location = 0) in vec3 position;\n\
+    layout (location = 1) in vec4 a_color;\n\
+    layout (location = 2) in vec2 uv;\n\
+    out vec4 color;\n\
+    out vec2 tex_coord;\n\
+    void main() {\n\
+        gl_Position = vec4(position.x, position.y, position.z, 1.0);\n\
+        color = a_color;\n\
+        tex_coord = uv;\n\
+    }";
+
+const FRAGMENT_SHADER: &'static str = "#version 330 core\n\
+    in vec4 color;\n\
+    in vec2 tex_coord;\n\
+    out vec4 frag_color;\n\
+    void main() {\n\
+        vec2 scaled = tex_coord * 2.0 - 1.0;
+        float d = dot(scaled, scaled);\n\
+        if (d > 1) {\n\
+            discard;\n\
+        }\n\
+        frag_color = color;\n\
+    }";
+
 impl Shape for Ellipse {
     fn points(&self) -> Vec<Point> {
         self.points.clone()
     }
+    fn uvs(&self) -> Vec<f32> {
+        get_rect_uvs()
+    }
     fn indices(&self) -> Vec<u32> {
-        self.indices.clone()
+        (0..4).collect()
     }
     fn vertex_shader(&self) -> String {
-        String::from("")
+        String::from(VERTEX_SHADER)
     }
     fn fragment_shader(&self) -> String {
-        String::from("")
+        String::from(FRAGMENT_SHADER)
     }
     fn draw(&self) {
         shape::draw(self);
