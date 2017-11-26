@@ -74,7 +74,6 @@ fn draw() {
     unsafe {
         sin = t.sin();
         cos = t.cos();
-        t += 0.03;
     }
     let triCenter = point_on_circle(&origin, radius, sin, cos);
     fill((1.0, 0.0, 0.0));
@@ -110,6 +109,10 @@ fn draw() {
 
     stroke((0.0, 1.0, 1.0));
     point(origin);
+
+    unsafe {
+        t += 0.03;
+    }
 }
 
 fn main() {
