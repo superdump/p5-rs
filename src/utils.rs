@@ -22,6 +22,27 @@
  * SOFTWARE.
  */
 
-pub fn map(iv: f64, il: f64, iu: f64, ol: f64, ou: f64) -> f64 {
+use point::Point;
+
+use std::f32;
+
+pub fn map_f32(iv: f32, il: f32, iu: f32, ol: f32, ou: f32) -> f32 {
     ol + (ou - ol) * (iv - il) / (iu - il)
 }
+
+pub fn map_f64(iv: f64, il: f64, iu: f64, ol: f64, ou: f64) -> f64 {
+    ol + (ou - ol) * (iv - il) / (iu - il)
+}
+
+pub fn have_anticlockwise_winding(p1: Point, p2: Point, p3: Point) -> bool {
+    let a = p1 - p2;
+    let b = p3 - p2;
+    // atan2 gives the anti-clockwise rotation about the z-axis from the x-axis
+    let atana = a.y.atan2(a.x);
+    let atanb = b.y.atan2(b.x);
+    if atanb > 0.0 {
+        return atana > atanb || atana + f32::consts::PI < atanb
+    }
+    atana > atanb && atana - f32::consts::PI < atanb
+}
+

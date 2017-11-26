@@ -25,9 +25,10 @@
 use point::*;
 use shape;
 use shape::Shape;
+use utils::*;
 
-pub fn triangle<P: Into<Point>>(left: P, right: P, top: P) {
-    Triangle::new(left.into(), right.into(), top.into()).draw();
+pub fn triangle<P: Into<Point>>(p1: P, p2: P, p3: P) {
+    Triangle::new(p1.into(), p2.into(), p3.into()).draw();
 }
 
 pub struct Triangle {
@@ -35,9 +36,18 @@ pub struct Triangle {
 }
 
 impl Triangle {
-    pub fn new(left: Point, right: Point, top: Point) -> Triangle {
+    pub fn new(p1: Point, p2: Point, p3: Point) -> Triangle {
+        let point1;
+        let point2;
+        if !have_anticlockwise_winding(p1, p2, p3) {
+            point1 = p2;
+            point2 = p1;
+        } else {
+            point1 = p1;
+            point2 = p2;
+        }
         Triangle {
-            points: vec![left, right, top],
+            points: vec![point1, point2, p3],
         }
     }
 }
