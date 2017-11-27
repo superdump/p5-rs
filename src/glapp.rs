@@ -24,13 +24,14 @@
 
 extern crate glutin;
 extern crate libc;
+extern crate lru_cache;
 
 use channel;
 use color::*;
 use point::*;
 use sketch::SKETCH;
 use shader::*;
-use shape::GLShape;
+use shape::{HashableShape, Shape};
 use utils::map_f32;
 
 use self::glutin::GlContext;
@@ -44,6 +45,28 @@ use std::os::raw::c_void;
 use std::process::exit;
 use std::ptr;
 use std::sync::{mpsc, Mutex};
+
+#[derive(Debug, Eq, Hash, PartialEq)]
+pub struct GLShape {
+    pub n_indices: usize,
+    pub vao: GLuint,
+    pub vbo: GLuint,
+    pub ebo: GLuint,
+    pub shader_program: GLuint,
+}
+
+impl Drop for GLShape {
+    fn drop(&mut self) {
+        unsafe {
+            if self.shader_program != get_default_shader_program_gl() {
+                gl::DeleteProgram(self.shader_program);
+            }
+            gl::DeleteBuffers(1, &self.ebo);
+            gl::DeleteBuffers(1, &self.vbo);
+            gl::DeleteVertexArrays(1, &self.vao);
+        }
+    }
+}
 
 pub const DEFAULT_WIDTH: u32 = 640;
 pub const DEFAULT_HEIGHT: u32 = 360;
@@ -61,7 +84,7 @@ lazy_static! {
     static ref VERTICES: Mutex<Vec<GLfloat>> = Mutex::new(Vec::new());
     static ref INDICES: Mutex<Vec<GLuint>> = Mutex::new(Vec::new());
     static ref SHADERS: Mutex<HashMap<String, GLuint>> = Mutex::new(HashMap::new());
-    static ref GL_SHAPES: Mutex<Vec<GLShape>> = Mutex::new(Vec::new());
+    static ref GL_SHAPES: Mutex<lru_cache::LruCache<HashableShape, GLShape>> = Mutex::new(lru_cache::LruCache::new(1_000_000));
     static ref INDEX_BYTES_OFFSET: Mutex<u32> = Mutex::new(0);
 }
 
@@ -268,6 +291,14 @@ impl GLApp {
     }
 }
 
+// vertices are stored as:
+// vertex, color
+// Khronos advise to use 4-byte alignment for vertex attributes
+// vertex is xyz as 3 GLfloat (12 bytes)
+// uv is uv as 2 GLfloat (8 bytes)
+// color is rgba as 4 GLfloat (16 bytes)
+// the stride is therefore 9 GLfloat (36 bytes)
+const VBO_STRIDE_N: usize = 9;
 fn create_objects(vertex_data: &Vec<GLfloat>, index_data: &Vec<GLuint>) -> (GLuint, GLuint, GLuint) {
     let mut vao = 0;
     let mut vbo = 0;
@@ -283,7 +314,7 @@ fn create_objects(vertex_data: &Vec<GLfloat>, index_data: &Vec<GLuint>) -> (GLui
             gl::ARRAY_BUFFER,
             (vertex_data.len() * size_of::<GLfloat>()) as GLsizeiptr,
             vertex_data.as_ptr() as *const c_void,
-            gl::STREAM_DRAW,
+            gl::STATIC_DRAW,
         );
 
         gl::GenBuffers(1, &mut ebo);
@@ -292,7 +323,7 @@ fn create_objects(vertex_data: &Vec<GLfloat>, index_data: &Vec<GLuint>) -> (GLui
             gl::ELEMENT_ARRAY_BUFFER,
             (index_data.len() * size_of::<GLuint>()) as GLsizeiptr,
             index_data.as_ptr() as *const c_void,
-            gl::STREAM_DRAW,
+            gl::STATIC_DRAW,
         );
 
         // Specify the layout of the vertex data
@@ -342,9 +373,9 @@ fn point_to_vertex(point: &Point) -> [GLfloat; 3] {
     let max_h = (sketch.height/2) as f32;
     let min_h = -max_h;
     [
-        map_f32(point.x, min_w, max_w, -1.0, 1.0) as GLfloat,
-        map_f32(point.y, min_h, max_h, -1.0, 1.0) as GLfloat,
-        map_f32(point.z, min_h, max_h, -1.0, 1.0) as GLfloat, // FIXME: think about how to convert z
+        map_f32(point.x.into(), min_w, max_w, -1.0, 1.0),
+        map_f32(point.y.into(), min_h, max_h, -1.0, 1.0),
+        map_f32(point.z.into(), min_h, max_h, -1.0, 1.0), // FIXME: think about how to convert z
     ]
 }
 
@@ -357,101 +388,72 @@ pub fn points_to_vertices(points: &Vec<Point>) -> Vec<GLfloat> {
     vertices
 }
 
-// vertices are stored as:
-// vertex, color
-// Khronos advise to use 4-byte alignment for vertex attributes
-// vertex is xyz as 3 GLfloat (12 bytes)
-// uv is uv as 2 GLfloat (8 bytes)
-// color is rgba as 4 GLfloat (16 bytes)
-// the stride is therefore 9 GLfloat (36 bytes)
-const VBO_STRIDE_N: usize = 9;
-pub fn append_vertices(points: &Vec<Point>, uvs: &Vec<f32>, color: &Color) -> usize {
-    let vertex_data = points_to_vertices(points);
-    let mut vertices = VERTICES.lock().unwrap();
-    let total_vertices_before = vertices.len() / VBO_STRIDE_N;
-    let count = vertex_data.len() / 3;
+fn make_vertex_data(points: &Vec<Point>, uvs: &Vec<f32>, color: &Color) -> Vec<GLfloat> {
+    let vertices = points_to_vertices(points);
+    let mut vertex_data = Vec::new();
+    let count = vertices.len() / 3;
     for i in 0..count {
         let vd_offset = i * 3;
-        vertices.extend_from_slice(&vertex_data[vd_offset..vd_offset+3]);
+        vertex_data.extend_from_slice(&vertices[vd_offset..vd_offset+3]);
         let uv_offset = i * 2;
-        vertices.extend_from_slice(&uvs[uv_offset..uv_offset+2]);
-        vertices.extend_from_slice(color.as_vec4().as_slice());
+        vertex_data.extend_from_slice(&uvs[uv_offset..uv_offset+2]);
+        vertex_data.extend_from_slice(color.as_vec4().as_slice());
     }
-    total_vertices_before
+    vertex_data
 }
 
-fn drain_vertices() -> Vec<GLfloat> {
-    let mut vertices = VERTICES.lock().unwrap();
-    let drained = vertices.drain(..).collect();
-    drained
-}
-
-pub fn append_indices(offset: usize, index_data: Vec<u32>) {
-    let mut indices = INDICES.lock().unwrap();
-    for index in index_data {
-        indices.push(offset as u32 + index);
+fn draw(vao: GLuint, shader_program: GLuint, n_indices: usize) {
+    unsafe {
+        gl::BindVertexArray(vao);
+        gl::UseProgram(shader_program);
+        gl::DrawElements(
+            gl::TRIANGLE_STRIP,
+            n_indices as GLsizei,
+            gl::UNSIGNED_INT,
+            ptr::null(),
+        );
     }
 }
 
-fn drain_indices() -> Vec<u32> {
-    let mut indices = INDICES.lock().unwrap();
-    let drained = indices.drain(..).collect();
-    drained
-}
+pub fn draw_hashable_shape(hashable: HashableShape, shape: &Shape) {
+    let contains_key = GL_SHAPES.lock().unwrap().contains_key(&hashable);
+    if contains_key {
+        let mut vao: GLuint = 0;
+        let mut shader_program: GLuint = 0;
+        let mut n_indices: usize = 0;
+        if let Some(gl_shape) = GL_SHAPES.lock().unwrap().get_mut(&hashable) {
+            vao = gl_shape.vao;
+            shader_program = gl_shape.shader_program;
+            n_indices = gl_shape.n_indices;
+        }
+        channel::push(Box::new(move || {
+            draw(vao, shader_program, n_indices);
+        }));
+        channel::send();
+        return;
+    }
 
-pub fn append_shape(shader_program: GLuint, n_triangles: u32) {
-    let index_byte_offset = *INDEX_BYTES_OFFSET.lock().unwrap();
-    let mut gl_shapes = GL_SHAPES.lock().unwrap();
-    gl_shapes.push(GLShape {
-        shader_program,
-        index_byte_offset,
-        n_triangles,
-    });
-    *INDEX_BYTES_OFFSET.lock().unwrap() += ((n_triangles + 2) * size_of::<GLuint>() as u32) as GLuint;
-}
+    let points = shape.points();
+    let uvs = shape.uvs();
+    let color: Color = hashable.color.into();
 
-fn drain_shapes() -> Vec<GLShape> {
-    let mut gl_shapes = GL_SHAPES.lock().unwrap();
-    let drained = gl_shapes.drain(..).collect();
-    drained
-}
+    let vertex_data = make_vertex_data(&points, &uvs, &color);
+    let index_data = shape.indices();
+    let shader_program = get_shader_program(shape.vertex_shader(), shape.fragment_shader());
 
-fn drain() -> (Vec<GLfloat>, Vec<u32>, Vec<GLShape>) {
-    let tuple = (drain_vertices(), drain_indices(), drain_shapes());
-    *INDEX_BYTES_OFFSET.lock().unwrap() = 0;
-    tuple
-}
-
-pub fn render() {
-    let (vertices, indices, shapes) = drain();
+    let (tx, rx) = mpsc::channel::<GLShape>();
     channel::push(Box::new(move || {
-        // prepare
-        let (vao, vbo, ebo) = create_objects(&vertices, &indices);
-        let default_shader_program = get_default_shader_program_gl();
-
-        // draw
-        unsafe {
-            gl::BindVertexArray(vao);
-            for shape in shapes {
-                gl::UseProgram(shape.shader_program);
-                gl::DrawElements(
-                    gl::TRIANGLE_STRIP,
-                    (shape.n_triangles + 2) as GLsizei,
-                    gl::UNSIGNED_INT,
-                    shape.index_byte_offset as *const c_void
-                );
-            }
-        }
-
-        // cleanup
-        unsafe {
-            let mut shaders = SHADERS.lock().unwrap();
-            for (_, shader) in shaders.drain().take(1) {
-                gl::DeleteProgram(shader);
-            }
-            gl::DeleteBuffers(1, &ebo);
-            gl::DeleteBuffers(1, &vbo);
-            gl::DeleteVertexArrays(1, &vao);
-        }
+        let (vao, vbo, ebo) = create_objects(&vertex_data, &index_data);
+        tx.send(GLShape {
+            n_indices: index_data.len(),
+            vao,
+            vbo,
+            ebo,
+            shader_program,
+        }).unwrap();
+        draw(vao, shader_program, index_data.len());
     }));
+    channel::send();
+    let gl_shape = rx.recv().unwrap();
+    GL_SHAPES.lock().unwrap().insert(hashable, gl_shape);
 }

@@ -26,6 +26,22 @@ use channel;
 use glapp;
 use sketch::*;
 
+use ordered_float;
+
+#[derive(Copy, Clone, Debug, Eq, Hash, PartialEq)]
+pub struct HashableColor {
+    pub r: ordered_float::OrderedFloat<f32>,
+    pub g: ordered_float::OrderedFloat<f32>,
+    pub b: ordered_float::OrderedFloat<f32>,
+    pub a: ordered_float::OrderedFloat<f32>,
+}
+
+impl HashableColor {
+    pub fn as_vec4(&self) -> Vec<ordered_float::OrderedFloat<f32>> {
+        vec![self.r, self.g, self.b, self.a]
+    }
+}
+
 #[derive(Clone)]
 pub struct Color {
     pub r: f32,
@@ -37,6 +53,25 @@ pub struct Color {
 impl Color {
     pub fn as_vec4(&self) -> Vec<f32> {
         vec![self.r, self.g, self.b, self.a]
+    }
+    pub fn as_hashable(&self) -> HashableColor {
+        HashableColor {
+            r: self.r.into(),
+            g: self.g.into(),
+            b: self.b.into(),
+            a: self.a.into(),
+        }
+    }
+}
+
+impl From<HashableColor> for Color {
+    fn from(c: HashableColor) -> Color {
+        Color {
+            r: c.r.into(),
+            g: c.g.into(),
+            b: c.b.into(),
+            a: c.a.into(),
+        }
     }
 }
 
