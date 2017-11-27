@@ -1,10 +1,9 @@
 ## TODO
 
 * Optimizations
-    * Cache shapes
-        * Tested hack that uploads geometry once and reuses it every frame
-            * Enables 10x more triangles: 100k triangles at 10fps, 1M triangles at 1fps
-        * Bounded-size LRU, disallowing removal of shapes that are in the current frame
+    * Tested hack that uploads geometry once and reuses it every frame
+        * Enables 10x more triangles: 100k triangles at 10fps, 1M triangles at 1fps
+
 * Infrastructure
     * `loop()`, `noLoop()`
 * Imperative drawing
@@ -34,6 +33,10 @@
         * 10k triangles went from ~3fps to ~10fps
     * Draw using triangle strips instead of triangles. This reduces the number of calls to glDrawElements significantly for complex shapes such as ellipses.
         * 10k ellipses went from ~1.8fps to ~6fps
+    * Draw ellipses using a rectangle and fragment shader
+    * LRU cache for shapes
+        * 10k triangles up to 15fps
+        * 10k ellipses up to 15fps
 * Infrastructure
     * `setup()`, `draw()`
 * Global state
