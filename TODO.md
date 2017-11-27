@@ -34,6 +34,7 @@
     * Draw using triangle strips instead of triangles. This reduces the number of calls to glDrawElements significantly for complex shapes such as ellipses.
         * 10k ellipses went from ~1.8fps to ~6fps
     * Draw ellipses using a rectangle and fragment shader
+    * Cache shader programs
     * LRU cache for shapes
         * 10k triangles up to 15fps
         * 10k ellipses up to 15fps
