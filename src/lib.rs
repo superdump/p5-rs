@@ -74,8 +74,7 @@ pub fn run_sketch(setup: fn(), draw: fn(), log: bool) {
         );
         let mut time = clock.last_frame_time().clone();
 
-        let mut running = true;
-        while running {
+        loop {
             // FIXME: need a backchannel for events from the event loop polling
             glapp::poll_events();
 
