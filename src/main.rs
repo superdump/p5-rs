@@ -32,7 +32,7 @@ use rand::distributions::{IndependentSample, Range};
 
 const N_OBJECTS: usize = 10_000;
 
-static mut points: Option<Vec<Point>> = None;
+static mut POINTS: Option<Vec<Point>> = None;
 
 const WIDTH: u32 = 800;
 const HEIGHT: u32 = 800;
@@ -51,7 +51,7 @@ fn setup() {
         ).into());
     }
     unsafe {
-        points = Some(ps);
+        POINTS = Some(ps);
     }
 }
 
@@ -59,7 +59,7 @@ fn draw() {
     stroke((1.0, 1.0, 1.0, 0.3));
     strokeWeight(12);
     unsafe {
-        if let Some(ref ps) = points {
+        if let Some(ref ps) = POINTS {
             let offset: Point = (6.0, -12.0).into();
             for p in ps {
                 point(*p);
