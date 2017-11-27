@@ -85,7 +85,7 @@ pub fn run_sketch(setup: fn(), draw: fn(), log: bool) {
             draw_background();
             draw();
 
-            if log && time.frame_number() % 60 == 0 {
+            if log && time.frame_number() % 60 == 1 {
                 println!(
                     "Frame #{} at sketch_time={:.3}s wall_time={:.3}s frame_time={:.3}ms fps(mean)={:.3} fps={:.3}",
                     time.frame_number(),
