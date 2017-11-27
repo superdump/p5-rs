@@ -58,10 +58,10 @@ thread_local! {
 }
 
 lazy_static! {
-    static ref VERTICES: Mutex<Option<Vec<GLfloat>>> = Mutex::new(None);
-    static ref INDICES: Mutex<Option<Vec<GLuint>>> = Mutex::new(None);
-    static ref SHADERS: Mutex<Option<HashMap<String, GLuint>>> = Mutex::new(None);
-    static ref GL_SHAPES: Mutex<Option<Vec<GLShape>>> = Mutex::new(None);
+    static ref VERTICES: Mutex<Vec<GLfloat>> = Mutex::new(Vec::new());
+    static ref INDICES: Mutex<Vec<GLuint>> = Mutex::new(Vec::new());
+    static ref SHADERS: Mutex<HashMap<String, GLuint>> = Mutex::new(HashMap::new());
+    static ref GL_SHAPES: Mutex<Vec<GLShape>> = Mutex::new(Vec::new());
     static ref INDEX_BYTES_OFFSET: Mutex<u32> = Mutex::new(0);
 }
 
@@ -74,10 +74,6 @@ pub fn listen(rx: mpsc::Receiver<channel::MessageType>) {
 }
 
 pub fn setup() {
-    *VERTICES.lock().unwrap() = Some(Vec::new());
-    *INDICES.lock().unwrap() = Some(Vec::new());
-    *SHADERS.lock().unwrap() = Some(HashMap::new());
-    *GL_SHAPES.lock().unwrap() = Some(Vec::new());
     GLAPP.with(|handle| {
         handle.replace(Some(GLApp::new(0, 0)));
     });
@@ -144,10 +140,8 @@ pub fn get_shader_program(vertex_shader_src: String, fragment_shader_src: String
     let mut shader_program = get_default_shader_program();
 
     let concat = format!("{}{}", vertex_shader_src, fragment_shader_src);
-    if let Some(ref mut shaders) = *SHADERS.lock().unwrap() {
-        if let Some(shader_program) = shaders.get(&concat) {
-            return *shader_program
-        }
+    if let Some(shader_program) = SHADERS.lock().unwrap().get(&concat) {
+        return *shader_program
     }
 
     if vertex_shader_src.len() > 0 || fragment_shader_src.len() > 0 {
@@ -172,9 +166,7 @@ pub fn get_shader_program(vertex_shader_src: String, fragment_shader_src: String
         channel::send();
         shader_program = rx.recv().unwrap();
     }
-    if let Some(ref mut shaders) = *SHADERS.lock().unwrap() {
-        shaders.insert(concat, shader_program);
-    }
+    SHADERS.lock().unwrap().insert(concat, shader_program);
     shader_program
 }
 
@@ -375,60 +367,53 @@ pub fn points_to_vertices(points: &Vec<Point>) -> Vec<GLfloat> {
 const VBO_STRIDE_N: usize = 9;
 pub fn append_vertices(points: &Vec<Point>, uvs: &Vec<f32>, color: &Color) -> usize {
     let vertex_data = points_to_vertices(points);
-    let mut total_vertices_before = 0;
-    if let Some(ref mut vertices) = *VERTICES.lock().unwrap() {
-        total_vertices_before = vertices.len() / VBO_STRIDE_N;
-        let count = vertex_data.len() / 3;
-        for i in 0..count {
-            let vd_offset = i * 3;
-            vertices.extend_from_slice(&vertex_data[vd_offset..vd_offset+3]);
-            let uv_offset = i * 2;
-            vertices.extend_from_slice(&uvs[uv_offset..uv_offset+2]);
-            vertices.extend_from_slice(color.as_vec4().as_slice());
-        }
+    let mut vertices = VERTICES.lock().unwrap();
+    let total_vertices_before = vertices.len() / VBO_STRIDE_N;
+    let count = vertex_data.len() / 3;
+    for i in 0..count {
+        let vd_offset = i * 3;
+        vertices.extend_from_slice(&vertex_data[vd_offset..vd_offset+3]);
+        let uv_offset = i * 2;
+        vertices.extend_from_slice(&uvs[uv_offset..uv_offset+2]);
+        vertices.extend_from_slice(color.as_vec4().as_slice());
     }
     total_vertices_before
 }
 
 fn drain_vertices() -> Vec<GLfloat> {
-    if let Some(ref mut vertices) = *VERTICES.lock().unwrap() {
-        return vertices.drain(..).collect()
-    }
-    Vec::new()
+    let mut vertices = VERTICES.lock().unwrap();
+    let drained = vertices.drain(..).collect();
+    drained
 }
 
 pub fn append_indices(offset: usize, index_data: Vec<u32>) {
-    if let Some(ref mut indices) = *INDICES.lock().unwrap() {
-        for index in index_data {
-            indices.push(offset as u32 + index);
-        }
+    let mut indices = INDICES.lock().unwrap();
+    for index in index_data {
+        indices.push(offset as u32 + index);
     }
 }
 
 fn drain_indices() -> Vec<u32> {
-    if let Some(ref mut indices) = *INDICES.lock().unwrap() {
-        return indices.drain(..).collect()
-    }
-    Vec::new()
+    let mut indices = INDICES.lock().unwrap();
+    let drained = indices.drain(..).collect();
+    drained
 }
 
 pub fn append_shape(shader_program: GLuint, n_triangles: u32) {
     let index_byte_offset = *INDEX_BYTES_OFFSET.lock().unwrap();
-    if let Some(ref mut gl_shapes) = *GL_SHAPES.lock().unwrap() {
-        gl_shapes.push(GLShape {
-            shader_program,
-            index_byte_offset,
-            n_triangles,
-        });
-    }
+    let mut gl_shapes = GL_SHAPES.lock().unwrap();
+    gl_shapes.push(GLShape {
+        shader_program,
+        index_byte_offset,
+        n_triangles,
+    });
     *INDEX_BYTES_OFFSET.lock().unwrap() += ((n_triangles + 2) * size_of::<GLuint>() as u32) as GLuint;
 }
 
 fn drain_shapes() -> Vec<GLShape> {
-    if let Some(ref mut gl_shapes) = *GL_SHAPES.lock().unwrap() {
-        return gl_shapes.drain(..).collect()
-    }
-    Vec::new()
+    let mut gl_shapes = GL_SHAPES.lock().unwrap();
+    let drained = gl_shapes.drain(..).collect();
+    drained
 }
 
 fn drain() -> (Vec<GLfloat>, Vec<u32>, Vec<GLShape>) {
@@ -460,10 +445,9 @@ pub fn render() {
 
         // cleanup
         unsafe {
-            if let Some(ref mut shaders) = *SHADERS.lock().unwrap() {
-                for (_, shader) in shaders.drain().take(1) {
-                    gl::DeleteProgram(shader);
-                }
+            let mut shaders = SHADERS.lock().unwrap();
+            for (_, shader) in shaders.drain().take(1) {
+                gl::DeleteProgram(shader);
             }
             gl::DeleteBuffers(1, &ebo);
             gl::DeleteBuffers(1, &vbo);
