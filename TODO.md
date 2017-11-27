@@ -38,6 +38,7 @@
     * LRU cache for shapes
         * 10k triangles up to 15fps
         * 10k ellipses up to 15fps
+        * Maze generator up from 10fps at the beginning and 19fps at the end to 20fps at the beginning and 30fps at the end. The speedup is due to walls being destroyed reducing the numnber of things to draw per frame.
 * Infrastructure
     * `setup()`, `draw()`
 * Global state
