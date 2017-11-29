@@ -43,13 +43,13 @@ pub fn rect<P: Into<Point>>(top_left: P, bottom_right: P) {
 pub struct Rectangle {
     points: Vec<Point>,
     is_stroke: bool,
-    transformations: Matrix,
 }
 
 pub fn get_rect_points(
     top_left: Point,
     bottom_right: Point,
     is_line: bool,
+    transformations: Matrix,
 ) -> Vec<Point> {
     let mut top_left = top_left;
     let mut bottom_right = bottom_right;
@@ -87,7 +87,11 @@ pub fn get_rect_points(
             z: top_left.z,
         };
     }
-    vec![top_left, bottom_left, top_right, bottom_right]
+    let mut points = vec![top_left, bottom_left, top_right, bottom_right];
+    for ref mut point in &mut points {
+        transformations.transform(point);
+    }
+    points
 }
 
 pub fn get_rect_uvs() -> Vec<f32> {
@@ -106,11 +110,11 @@ impl Rectangle {
             top_left,
             bottom_right,
             is_line,
+            transformations,
         );
         Rectangle {
             points,
             is_stroke,
-            transformations,
         }
     }
 }
@@ -118,9 +122,6 @@ impl Rectangle {
 impl Shape for Rectangle {
     fn points(&self) -> Vec<Point> {
         self.points.clone()
-    }
-    fn transformations(&self) -> Matrix {
-        self.transformations.clone()
     }
     fn uvs(&self) -> Vec<f32> {
         get_rect_uvs()

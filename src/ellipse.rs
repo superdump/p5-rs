@@ -43,7 +43,6 @@ pub fn ellipse<P: Into<Point>>(center: P, width: f32, height: f32) {
 pub struct Ellipse {
     points: Vec<Point>,
     is_stroke: bool,
-    transformations: Matrix,
 }
 
 impl Ellipse {
@@ -61,11 +60,11 @@ impl Ellipse {
             top_left,
             bottom_right,
             false,
+            transformations,
         );
         Ellipse {
             points,
             is_stroke,
-            transformations,
         }
     }
 }
@@ -98,9 +97,6 @@ const FRAGMENT_SHADER: &'static str = "#version 330 core\n\
 impl Shape for Ellipse {
     fn points(&self) -> Vec<Point> {
         self.points.clone()
-    }
-    fn transformations(&self) -> Matrix {
-        self.transformations.clone()
     }
     fn uvs(&self) -> Vec<f32> {
         get_rect_uvs()

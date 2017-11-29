@@ -41,7 +41,6 @@ pub fn triangle<P: Into<Point>>(p1: P, p2: P, p3: P) {
 
 pub struct Triangle {
     points: Vec<Point>,
-    transformations: Matrix,
 }
 
 impl Triangle {
@@ -55,9 +54,11 @@ impl Triangle {
         if !have_anticlockwise_winding(p1, p2, p3) {
             points.swap(0, 1);
         }
+        for ref mut point in &mut points {
+            transformations.transform(point);
+        }
         Triangle {
             points,
-            transformations,
         }
     }
 }
@@ -65,9 +66,6 @@ impl Triangle {
 impl Shape for Triangle {
     fn points(&self) -> Vec<Point> {
         self.points.clone()
-    }
-    fn transformations(&self) -> Matrix {
-        self.transformations.clone()
     }
     fn uvs(&self) -> Vec<f32> {
         let (l,t,r,b) = bounding_box(&self.points);
