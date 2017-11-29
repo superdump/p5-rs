@@ -25,86 +25,28 @@
 use matrix::*;
 use point::Point;
 
-use std::fmt;
 use std::sync::Mutex;
 
 lazy_static! {
-    static ref TRANSFORMATION_STACK: Mutex<Vec<Transformations>> = Mutex::new(vec![Transformations::new()]);
-}
-
-#[derive(Clone, Debug)]
-pub struct Transformations {
-    scale: Matrix,
-    rotate: Matrix,
-    translate: Matrix,
-}
-
-impl Transformations {
-    pub fn new() -> Transformations {
-        Transformations {
-            scale: Matrix::identity(4, 4),
-            rotate: Matrix::identity(4, 4),
-            translate: Matrix::identity(4, 4),
-        }
-    }
-    pub fn getMatrix(&self) -> Matrix {
-        let scale = &self.scale;
-        let mut rotate = self.rotate.clone();
-        let mut translate = self.translate.clone();
-        rotate.mul(scale);
-        translate.mul(&rotate);
-        translate
-    }
-    pub fn scale(&mut self, factors: Point) {
-        self.scale.scale(factors);
-    }
-    pub fn shearX(&mut self, offset: f32) {
-        self.scale.shearX(offset);
-    }
-    pub fn shearY(&mut self, offset: f32) {
-        self.scale.shearY(offset);
-    }
-    pub fn rotate(&mut self, angle: f32) {
-        self.rotate.rotateZ(angle);
-    }
-    pub fn rotateX(&mut self, angle: f32) {
-        self.rotate.rotateX(angle);
-    }
-    pub fn rotateY(&mut self, angle: f32) {
-        self.rotate.rotateY(angle);
-    }
-    pub fn rotateZ(&mut self, angle: f32) {
-        self.rotate.rotateZ(angle);
-    }
-    pub fn translate(&mut self, p: Point) {
-        self.translate.translate(p);
-    }
-}
-
-impl fmt::Display for Transformations {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "scale:\n{}", self.scale)?;
-        write!(f, "rotate:\n{}", self.rotate)?;
-        write!(f, "translate:\n{}", self.translate)
-    }
+    static ref TRANSFORMATION_STACK: Mutex<Vec<Matrix>> = Mutex::new(vec![Matrix::identity(4, 4)]);
 }
 
 pub fn reset() {
     let mut transformation_stack = TRANSFORMATION_STACK.lock().unwrap();
     transformation_stack.truncate(0);
-    transformation_stack.push(Transformations::new());
+    transformation_stack.push(Matrix::identity(4, 4));
 }
 
-pub fn getTransformations() -> Transformations {
+pub fn getTransformations() -> Matrix {
     if let Some(transformations) = TRANSFORMATION_STACK.lock().unwrap().last() {
         return transformations.clone();
     }
-    Transformations::new()
+    Matrix::identity(4, 4)
 }
 
 pub fn pushMatrix() {
     let mut transformation_stack = TRANSFORMATION_STACK.lock().unwrap();
-    let mut clone = Transformations::new();
+    let mut clone = Matrix::identity(4, 4);
     if let Some(top) = transformation_stack.last() {
         clone = top.clone();
     }
