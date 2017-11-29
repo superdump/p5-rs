@@ -110,7 +110,8 @@ impl From<f32> for Color {
 
 pub fn draw_background() {
     channel::push(Box::new(move || {
-        glapp::background(&SKETCH.lock().unwrap().background.clone());
+        let background = SKETCH.lock().unwrap().background.clone();
+        glapp::background(&background);
     }));
 }
 
