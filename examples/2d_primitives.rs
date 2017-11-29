@@ -71,41 +71,49 @@ fn draw() {
     let radius: f32 = 100.0;
     let mut sin: f32;
     let mut cos: f32;
+
     unsafe {
         sin = t.sin();
         cos = t.cos();
     }
-    let triCenter = point_on_circle(&origin, radius, sin, cos);
     fill((1.0, 0.0, 0.0));
-    triangle(triCenter + p1, triCenter + p2, triCenter + p3);
+    pushMatrix();
+    let triCenter = point_on_circle(&origin, radius, sin, cos);
+    translate(triCenter);
+    triangle(p1, p2, p3);
+    popMatrix();
+
     unsafe {
         sin = (t + std::f32::consts::FRAC_PI_2).sin();
         cos = (t + std::f32::consts::FRAC_PI_2).sin();
     }
-    let ellipseCenter = point_on_circle(&origin, radius, sin, cos);
     fill((0.0, 1.0, 0.0));
-    ellipse(ellipseCenter, 200.0, 100.0);
+    pushMatrix();
+    let ellipseCenter = point_on_circle(&origin, radius, sin, cos);
+    translate(ellipseCenter);
+    ellipse(origin, 200.0, 100.0);
+    popMatrix();
+
     unsafe {
         sin = (t + std::f32::consts::PI).sin();
         cos = (t + std::f32::consts::PI).cos();
     }
-    let rectCenter = point_on_circle(&origin, radius, sin, cos);
     fill((0.0, 0.0, 1.0));
-    rect(rectCenter + tl, rectCenter + br);
+    pushMatrix();
+    let rectCenter = point_on_circle(&origin, radius, sin, cos);
+    translate(rectCenter);
+    rect(tl, br);
+    popMatrix();
 
     strokeWeight(10);
     stroke((1.0, 1.0, 0.0));
+
+    pushMatrix();
     unsafe {
-        sin = (-0.5 * t).sin();
-        cos = (-0.5 * t).cos();
+        rotate(0.5 * t);
     }
-    let start = point_on_circle(&origin, 0.75 * radius, sin, cos);
-    unsafe {
-        sin = (-0.5 * t - std::f32::consts::PI).sin();
-        cos = (-0.5 * t - std::f32::consts::PI).cos();
-    }
-    let end = point_on_circle(&origin, 0.75 * radius, sin, cos);
-    line(start, end);
+    line((-0.75 * radius, 0.0), (0.75 * radius, 0.0));
+    popMatrix();
 
     stroke((0.0, 1.0, 1.0));
     point(origin);
