@@ -22,10 +22,10 @@
  * SOFTWARE.
  */
 
+use point::{point, Point};
 use rectangle::Rectangle;
 use shape::Shape;
 use sketch::get_stroke_weight;
-use point::{Point, point};
 
 pub fn line<P: Into<Point>>(start: P, end: P) {
     let s = start.into();
