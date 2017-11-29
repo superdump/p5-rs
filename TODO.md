@@ -1,9 +1,14 @@
 ## TODO
 
 * Optimizations
-    * Tested hack that uploads geometry once and reuses it every frame
-        * Enables 10x more triangles: 100k triangles at 10fps, 1M triangles at 1fps
-
+    * Discussed performance issues with Jakub Valtar who works on Processing
+        * Have to minimize draw calls
+        * Use few large vertex buffers
+        * Use batch drawing (increase count of drawn shapes in glDrawElements)
+        * Avoid switching shader programs often as it stalls the GL rendering pipeline
+            * Probably don't want to use a fragment shader for ellipses, or will have to render ellipses separately. Draw ellipses using triangle strip.
+        * Generate buffers once and re-upload data by binding the existing buffer and using glBufferData
+    * ystreet0 (Matthew Waters) suggested to upload data in one frame and render it in the next - essentially double-buffering
 * Infrastructure
     * `loop()`, `noLoop()`
 * Imperative drawing
@@ -31,6 +36,8 @@
     * Channel incurs many context switches? Queue up closures and dispatch in one go.
     * Upload all geometry data for a single frame in one vertex and one index buffer
         * 10k triangles went from ~3fps to ~10fps
+    * Tested hack that uploads geometry once and reuses it every frame
+        * Enables 10x more triangles: 100k triangles at 10fps, 1M triangles at 1fps
     * Draw using triangle strips instead of triangles. This reduces the number of calls to glDrawElements significantly for complex shapes such as ellipses.
         * 10k ellipses went from ~1.8fps to ~6fps
     * Draw ellipses using a rectangle and fragment shader
