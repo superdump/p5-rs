@@ -22,18 +22,28 @@
  * SOFTWARE.
  */
 
+use matrix::Matrix;
 use point::*;
 use rectangle::{get_rect_points, get_rect_uvs};
 use shape;
 use shape::Shape;
+use transformation::getTransformations;
 
 pub fn ellipse<P: Into<Point>>(center: P, width: f32, height: f32) {
-    Ellipse::new(center.into(), width, height, false).draw();
+    let transformations = getTransformations();
+    Ellipse::new(
+        center.into(),
+        width,
+        height,
+        false,
+        transformations,
+    ).draw();
 }
 
 pub struct Ellipse {
     points: Vec<Point>,
     is_stroke: bool,
+    transformations: Matrix,
 }
 
 impl Ellipse {
@@ -42,15 +52,20 @@ impl Ellipse {
         width: f32,
         height: f32,
         is_stroke: bool,
+        transformations: Matrix,
     ) -> Ellipse {
-        let half_width = 0.5 * width;
-        let half_height = 0.5 * height;
-        let diagonal: Point = (-half_width, half_height).into();
+        let diagonal: Point = (-0.5 * width, 0.5 * height).into();
         let top_left: Point = center + diagonal;
         let bottom_right: Point = center - diagonal;
+        let points = get_rect_points(
+            top_left,
+            bottom_right,
+            false,
+        );
         Ellipse {
-            points: get_rect_points(top_left, bottom_right, false),
+            points,
             is_stroke,
+            transformations,
         }
     }
 }
@@ -83,6 +98,9 @@ const FRAGMENT_SHADER: &'static str = "#version 330 core\n\
 impl Shape for Ellipse {
     fn points(&self) -> Vec<Point> {
         self.points.clone()
+    }
+    fn transformations(&self) -> Matrix {
+        self.transformations.clone()
     }
     fn uvs(&self) -> Vec<f32> {
         get_rect_uvs()

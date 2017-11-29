@@ -26,11 +26,19 @@ use point::{point, Point};
 use rectangle::Rectangle;
 use shape::Shape;
 use sketch::get_stroke_weight;
+use transformation::getTransformations;
 
 pub fn line<P: Into<Point>>(start: P, end: P) {
     let s = start.into();
     let e = end.into();
-    Rectangle::new(s.clone(), e.clone(), true, true).draw();
+    let transformations = getTransformations();
+    Rectangle::new(
+        s.clone(),
+        e.clone(),
+        true,
+        true,
+        transformations,
+    ).draw();
     // Note: this is a small optimization for small stroke weights to not draw points
     let width = get_stroke_weight();
     if width > 4 {

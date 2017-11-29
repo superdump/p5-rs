@@ -25,6 +25,7 @@
 use ellipse::*;
 use shape::Shape;
 use sketch::get_stroke_weight;
+use transformation::getTransformations;
 
 use ordered_float;
 
@@ -33,7 +34,14 @@ use std::ops::{Add, Sub};
 
 pub fn point<P: Into<Point>>(point: P) {
     let diameter = get_stroke_weight();
-    Ellipse::new(point.into(), diameter as f32, diameter as f32, true).draw();
+    let transformations = getTransformations();
+    Ellipse::new(
+        point.into(),
+        diameter as f32,
+        diameter as f32,
+        false,
+        transformations,
+    ).draw();
 }
 
 #[derive(Copy, Clone, Debug, Eq, Hash, PartialEq)]

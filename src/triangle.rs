@@ -22,32 +22,42 @@
  * SOFTWARE.
  */
 
+use matrix::Matrix;
 use point::*;
 use shape;
 use shape::Shape;
+use transformation::getTransformations;
 use utils::*;
 
 pub fn triangle<P: Into<Point>>(p1: P, p2: P, p3: P) {
-    Triangle::new(p1.into(), p2.into(), p3.into()).draw();
+    let transformations = getTransformations();
+    Triangle::new(
+        p1.into(),
+        p2.into(),
+        p3.into(),
+        transformations,
+    ).draw();
 }
 
 pub struct Triangle {
     points: Vec<Point>,
+    transformations: Matrix,
 }
 
 impl Triangle {
-    pub fn new(p1: Point, p2: Point, p3: Point) -> Triangle {
-        let point1;
-        let point2;
+    pub fn new(
+        p1: Point,
+        p2: Point,
+        p3: Point,
+        transformations: Matrix,
+    ) -> Triangle {
+        let mut points = vec![p1, p2, p3];
         if !have_anticlockwise_winding(p1, p2, p3) {
-            point1 = p2;
-            point2 = p1;
-        } else {
-            point1 = p1;
-            point2 = p2;
+            points.swap(0, 1);
         }
         Triangle {
-            points: vec![point1, point2, p3],
+            points,
+            transformations,
         }
     }
 }
@@ -55,6 +65,9 @@ impl Triangle {
 impl Shape for Triangle {
     fn points(&self) -> Vec<Point> {
         self.points.clone()
+    }
+    fn transformations(&self) -> Matrix {
+        self.transformations.clone()
     }
     fn uvs(&self) -> Vec<f32> {
         let (l,t,r,b) = bounding_box(&self.points);

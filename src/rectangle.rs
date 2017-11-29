@@ -22,21 +22,35 @@
  * SOFTWARE.
  */
 
+use matrix::Matrix;
 use point::*;
 use shape;
 use shape::Shape;
 use sketch::get_stroke_weight;
+use transformation::getTransformations;
 
 pub fn rect<P: Into<Point>>(top_left: P, bottom_right: P) {
-    Rectangle::new(top_left.into(), bottom_right.into(), false, false).draw();
+    let transformations = getTransformations();
+    Rectangle::new(
+        top_left.into(),
+        bottom_right.into(),
+        false,
+        false,
+        transformations,
+    ).draw();
 }
 
 pub struct Rectangle {
     points: Vec<Point>,
     is_stroke: bool,
+    transformations: Matrix,
 }
 
-pub fn get_rect_points(top_left: Point, bottom_right: Point, is_line: bool) -> Vec<Point> {
+pub fn get_rect_points(
+    top_left: Point,
+    bottom_right: Point,
+    is_line: bool,
+) -> Vec<Point> {
     let mut top_left = top_left;
     let mut bottom_right = bottom_right;
     let top_right;
@@ -81,10 +95,22 @@ pub fn get_rect_uvs() -> Vec<f32> {
 }
 
 impl Rectangle {
-    pub fn new(top_left: Point, bottom_right: Point, is_stroke: bool, is_line: bool) -> Rectangle {
+    pub fn new(
+        top_left: Point,
+        bottom_right: Point,
+        is_stroke: bool,
+        is_line: bool,
+        transformations: Matrix,
+    ) -> Rectangle {
+        let points = get_rect_points(
+            top_left,
+            bottom_right,
+            is_line,
+        );
         Rectangle {
-            points: get_rect_points(top_left, bottom_right, is_line),
+            points,
             is_stroke,
+            transformations,
         }
     }
 }
@@ -92,6 +118,9 @@ impl Rectangle {
 impl Shape for Rectangle {
     fn points(&self) -> Vec<Point> {
         self.points.clone()
+    }
+    fn transformations(&self) -> Matrix {
+        self.transformations.clone()
     }
     fn uvs(&self) -> Vec<f32> {
         get_rect_uvs()

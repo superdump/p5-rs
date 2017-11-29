@@ -24,6 +24,7 @@
 
 use color::*;
 use glapp::*;
+use matrix::Matrix;
 use point::*;
 
 use ordered_float;
@@ -41,6 +42,7 @@ pub struct HashableShape {
 
 pub trait Shape {
     fn points(&self) -> Vec<Point>;
+    fn transformations(&self) -> Matrix;
     fn uvs(&self) -> Vec<f32>;
     fn indices(&self) -> Vec<u32>;
     fn vertex_shader(&self) -> String;
@@ -58,7 +60,12 @@ pub fn draw(shape: &Shape) {
         color = get_fill().as_hashable();
     }
 
-    let points = shape.points().iter().map(|p| p.as_hashable()).collect();
+    let mut points = shape.points();
+    let transformations = shape.transformations();
+    for ref mut point in &mut points {
+        transformations.transform(point);
+    }
+    let hashable_points = points.iter().map(|p| p.as_hashable()).collect();
 
     let uvs_f32 = shape.uvs();
     let mut uvs: Vec<ordered_float::OrderedFloat<f32>> = Vec::new();
@@ -73,7 +80,7 @@ pub fn draw(shape: &Shape) {
 
     let hashable = HashableShape {
         color,
-        points,
+        points: hashable_points,
         uvs,
         indices,
         vertex_shader,
