@@ -24,10 +24,14 @@
 
 use matrix::Matrix;
 use point::*;
-use rectangle::{get_rect_points, get_rect_uvs};
 use shape;
 use shape::Shape;
 use transformation::getTransformations;
+use utils::*;
+
+use std::f32::consts::*;
+
+const N_SEGMENTS: u32 = 64;
 
 pub fn ellipse<P: Into<Point>>(center: P, width: f32, height: f32) {
     let transformations = getTransformations();
@@ -35,6 +39,7 @@ pub fn ellipse<P: Into<Point>>(center: P, width: f32, height: f32) {
         center.into(),
         width,
         height,
+        N_SEGMENTS,
         false,
         transformations,
     ).draw();
@@ -42,6 +47,7 @@ pub fn ellipse<P: Into<Point>>(center: P, width: f32, height: f32) {
 
 pub struct Ellipse {
     points: Vec<Point>,
+    indices: Vec<u32>,
     is_stroke: bool,
 }
 
@@ -50,65 +56,83 @@ impl Ellipse {
         center: Point,
         width: f32,
         height: f32,
+        n_segments: u32,
         is_stroke: bool,
         transformations: Matrix,
     ) -> Ellipse {
-        let diagonal: Point = (-0.5 * width, 0.5 * height).into();
-        let top_left: Point = center + diagonal;
-        let bottom_right: Point = center - diagonal;
-        let points = get_rect_points(
-            top_left,
-            bottom_right,
-            false,
-            transformations,
-        );
+        let a = width * 0.5;
+        let b = height * 0.5;
+
+        let point_from_angle = |angle: f32| -> Point {
+            Point {
+                x: a * angle.sin(),
+                y: b * angle.cos(),
+                z: 0.0,
+            }
+        };
+
+        let mut points: Vec<Point> = Vec::new();
+        points.push(center + point_from_angle(-0.5 * PI));
+        let da = 2.0 * PI / (n_segments as f32);
+        for i in 1..n_segments / 2 {
+            let p = point_from_angle(-0.5 * PI + (i as f32) * da);
+            points.push(
+                center + Point {
+                    x: p.x,
+                    y: -p.y,
+                    z: p.z,
+                },
+            );
+            points.push(center + p);
+        }
+        points.push(center + point_from_angle(0.5 * PI));
+
+        for ref mut point in &mut points {
+            transformations.transform(point);
+        }
+
+        /* e.g.
+         * n_segments = 6
+         * always anti-clockwise through vertices
+         *
+         *  2 4
+         * 0   5
+         *  1 3
+         *
+         * 0,1,2,3,4,5 as a triangle strip
+         */
+
+        let indices: Vec<u32> = (0..n_segments).collect();
+
         Ellipse {
             points,
+            indices,
             is_stroke,
         }
     }
 }
-
-const VERTEX_SHADER: &'static str = "#version 330 core\n\
-    layout (location = 0) in vec3 position;\n\
-    layout (location = 1) in vec4 a_color;\n\
-    layout (location = 2) in vec2 uv;\n\
-    out vec4 color;\n\
-    out vec2 tex_coord;\n\
-    void main() {\n\
-        gl_Position = vec4(position.x, position.y, position.z, 1.0);\n\
-        color = a_color;\n\
-        tex_coord = uv;\n\
-    }";
-
-const FRAGMENT_SHADER: &'static str = "#version 330 core\n\
-    in vec4 color;\n\
-    in vec2 tex_coord;\n\
-    out vec4 frag_color;\n\
-    void main() {\n\
-        vec2 scaled = tex_coord * 2.0 - 1.0;
-        float d = dot(scaled, scaled);\n\
-        if (d > 1) {\n\
-            discard;\n\
-        }\n\
-        frag_color = color;\n\
-    }";
 
 impl Shape for Ellipse {
     fn points(&self) -> Vec<Point> {
         self.points.clone()
     }
     fn uvs(&self) -> Vec<f32> {
-        get_rect_uvs()
+        let (l, t, r, b) = bounding_box(&self.points);
+        let mut uvs = Vec::new();
+        for point in &self.points {
+            uvs.push(map_f32(point.x, l, r, 0.0, 1.0));
+            uvs.push(map_f32(point.y, b, t, 0.0, 1.0));
+        }
+        uvs
     }
     fn indices(&self) -> Vec<u32> {
-        (0..4).collect()
+        self.indices.clone()
     }
     fn vertex_shader(&self) -> String {
-        String::from(VERTEX_SHADER)
+        String::from("")
     }
     fn fragment_shader(&self) -> String {
-        String::from(FRAGMENT_SHADER)
+        String::from("")
     }
     fn draw(&self) {
         shape::draw(self);

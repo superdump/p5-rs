@@ -37,7 +37,8 @@ pub fn point<P: Into<Point>>(point: P) {
         point.into(),
         diameter as f32,
         diameter as f32,
-        false,
+        16,
+        true,
         transformations,
     ).draw();
 }
