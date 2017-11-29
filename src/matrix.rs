@@ -91,6 +91,23 @@ impl Matrix {
         self.cols = m.cols;
         self.matrix = result;
     }
+    pub fn transform(&self, p: &mut Point) {
+        if self.cols != 4 {
+            return;
+        }
+        let input = vec![p.x, p.y, p.z, 1.0];
+        let mut result = Vec::new();
+        for row in 0..self.rows {
+            let mut sum = 0.0;
+            for i in 0..self.cols {
+                sum += self.matrix[index(i, row, 4)] * input[i];
+            }
+            result.push(sum);
+        }
+        p.x = result[0];
+        p.y = result[1];
+        p.z = result[2];
+    }
     pub fn translate(&mut self, p: Point) {
         let mut transform = Matrix::identity(4, 4);
         let index = index(3, 0, 4);
