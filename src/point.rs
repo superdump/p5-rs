@@ -28,6 +28,7 @@ use sketch::get_stroke_weight;
 
 use ordered_float;
 
+use std::fmt;
 use std::ops::{Add, Sub};
 
 pub fn point<P: Into<Point>>(point: P) {
@@ -71,6 +72,12 @@ impl Point {
     }
     pub fn normalize(&mut self) {
         self.setMag(1.0);
+    }
+}
+
+impl fmt::Display for Point {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "({:8.3}, {:8.3}, {:8.3})", self.x, self.y, self.z)
     }
 }
 
