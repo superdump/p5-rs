@@ -26,6 +26,10 @@ use point::Point;
 
 use std::f32;
 
+pub fn index(row: usize, col: usize, cols: usize) -> usize {
+    row * cols + col
+}
+
 pub fn map_f32(iv: f32, il: f32, iu: f32, ol: f32, ou: f32) -> f32 {
     ol + (ou - ol) * (iv - il) / (iu - il)
 }
