@@ -42,6 +42,7 @@ mod rectangle;
 mod shader;
 mod shape;
 mod sketch;
+mod transformation;
 mod triangle;
 mod utils;
 
@@ -55,6 +56,7 @@ pub use rectangle::*;
 pub use shader::*;
 pub use shape::*;
 pub use sketch::*;
+pub use transformation::*;
 pub use triangle::*;
 pub use utils::*;
 
@@ -84,6 +86,7 @@ pub fn run_sketch(setup: fn(), draw: fn(), log: bool) {
                 time = clock.tick(&step::FixedStep::new(&counter));
                 counter.tick(&time);
             }
+            transformation::reset();
             color::draw_background();
             draw();
 
