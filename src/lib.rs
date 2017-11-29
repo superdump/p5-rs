@@ -82,7 +82,7 @@ pub fn run_sketch(setup: fn(), draw: fn(), log: bool) {
                 time = clock.tick(&step::FixedStep::new(&counter));
                 counter.tick(&time);
             }
-            draw_background();
+            color::draw_background();
             draw();
 
             if log && time.frame_number() % 60 == 1 {
