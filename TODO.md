@@ -10,7 +10,7 @@
     * `beginShape()`, `vertex()`, `endShape()`
     * 2D: `quad()`, `arc()`
     * 3D: `box()`, `sphere()`, 2-sided 2D primitives
-    * transforms: `popMatrix()`, `pushMatrix()`, `rotate()`, `rotateX()`, `rotateY()`, `rotateZ()`, `translate()`
+    * transforms: `popMatrix()`, `pushMatrix()`, `rotate()`, `rotateX()`, `rotateY()`, `rotateZ()`, `translate()`, `scale()`
 * Color
     * HSB, HSL, RGB, alpha - `colorMode()`
 * Utility
