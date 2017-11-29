@@ -202,8 +202,11 @@ pub fn background(color: &Color) {
 }
 
 pub fn size(w: u32, h: u32) {
-    SKETCH.lock().unwrap().width = w.clone();
-    SKETCH.lock().unwrap().height = h.clone();
+    {
+        let mut sketch = SKETCH.lock().unwrap();
+        sketch.width = w.clone();
+        sketch.height = h.clone();
+    }
     channel::push(Box::new(move || {
         GLAPP.with(|handle| {
             if let Some(ref mut glapp) = *handle.borrow_mut() {
