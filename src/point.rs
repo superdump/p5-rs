@@ -27,8 +27,6 @@ use shape::Shape;
 use sketch::get_stroke_weight;
 use transformation::getTransformations;
 
-use ordered_float;
-
 use std::fmt;
 use std::ops::{Add, Sub};
 
@@ -44,13 +42,6 @@ pub fn point<P: Into<Point>>(point: P) {
     ).draw();
 }
 
-#[derive(Copy, Clone, Debug, Eq, Hash, PartialEq)]
-pub struct HashablePoint {
-    pub x: ordered_float::OrderedFloat<f32>,
-    pub y: ordered_float::OrderedFloat<f32>,
-    pub z: ordered_float::OrderedFloat<f32>,
-}
-
 #[derive(Copy, Clone, Debug)]
 pub struct Point {
     pub x: f32,
@@ -61,13 +52,6 @@ pub struct Point {
 impl Point {
     pub fn new(x: f32, y: f32, z: f32) -> Point {
         Point { x: x, y: y, z: z }
-    }
-    pub fn as_hashable(&self) -> HashablePoint {
-        HashablePoint {
-            x: self.x.into(),
-            y: self.y.into(),
-            z: self.z.into(),
-        }
     }
     pub fn mag(&self) -> f32 {
         (self.x * self.x + self.y * self.y + self.z * self.z).sqrt()
@@ -86,16 +70,6 @@ impl Point {
 impl fmt::Display for Point {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "({:8.3}, {:8.3}, {:8.3})", self.x, self.y, self.z)
-    }
-}
-
-impl<'a> From<&'a HashablePoint> for Point {
-    fn from(p: &HashablePoint) -> Self {
-        Point {
-            x: p.x.into(),
-            y: p.y.into(),
-            z: p.z.into(),
-        }
     }
 }
 

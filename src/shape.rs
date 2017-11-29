@@ -24,21 +24,7 @@
 
 use color::*;
 use glapp::*;
-use matrix::Matrix;
 use point::*;
-
-use ordered_float;
-
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
-pub struct HashableShape {
-    pub color: HashableColor,
-    pub points: Vec<HashablePoint>,
-    pub uvs: Vec<ordered_float::OrderedFloat<f32>>,
-    pub indices: Vec<u32>,
-    pub vertex_shader: String,
-    pub fragment_shader: String,
-    pub is_stroke: bool,
-}
 
 pub trait Shape {
     fn points(&self) -> Vec<Point>;
@@ -51,36 +37,22 @@ pub trait Shape {
 }
 
 pub fn draw(shape: &Shape) {
-    let is_stroke = shape.is_stroke();
+    let vertices = shape.points();
+    let uvs = shape.uvs();
     let color;
-    if is_stroke {
-        color = get_stroke().as_hashable();
+    if shape.is_stroke() {
+        color = get_stroke();
     } else {
-        color = get_fill().as_hashable();
-    }
-
-    let points = shape.points().iter().map(|p| p.as_hashable()).collect();
-
-    let uvs_f32 = shape.uvs();
-    let mut uvs: Vec<ordered_float::OrderedFloat<f32>> = Vec::new();
-    for uv in uvs_f32 {
-        uvs.push(ordered_float::OrderedFloat(uv));
+        color = get_fill();
     }
 
     let indices = shape.indices();
-
-    let vertex_shader = shape.vertex_shader();
-    let fragment_shader = shape.fragment_shader();
-
-    let hashable = HashableShape {
-        color,
-        points,
-        uvs,
-        indices,
-        vertex_shader,
-        fragment_shader,
-        is_stroke,
-    };
-
-    draw_hashable_shape(hashable, shape);
+    let n_triangles = indices.len() - 2;
+    let total_vertices_before = append_vertices(&vertices, &uvs, &color);
+    append_indices(total_vertices_before, indices);
+    let shader_program = get_shader_program(
+        shape.vertex_shader(),
+        shape.fragment_shader(),
+    );
+    append_shape(shader_program, n_triangles as u32);
 }

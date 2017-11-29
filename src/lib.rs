@@ -29,7 +29,6 @@ extern crate game_time;
 extern crate gl;
 #[macro_use]
 extern crate lazy_static;
-extern crate ordered_float;
 
 mod channel;
 mod color;
@@ -90,6 +89,7 @@ pub fn run_sketch(setup: fn(), draw: fn(), log: bool) {
             color::draw_background();
             draw();
 
+            glapp::render();
             if log && time.frame_number() % 60 == 1 {
                 println!(
                     "Frame #{} at sketch_time={:.3}s wall_time={:.3}s frame_time={:.3}ms fps(mean)={:.3} fps={:.3}",
