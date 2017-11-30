@@ -66,6 +66,7 @@ thread_local! {
 lazy_static! {
     static ref VERTICES: Mutex<Vec<GLfloat>> = Mutex::new(Vec::new());
     static ref INDICES: Mutex<Vec<GLuint>> = Mutex::new(Vec::new());
+    static ref DEFAULT_SHADER_PROGRAM: Mutex<GLuint> = Mutex::new(0);
     static ref SHADERS: Mutex<HashMap<String, GLuint>> = Mutex::new(HashMap::new());
     static ref GL_SHAPES: Mutex<Vec<GLShape>> = Mutex::new(Vec::new());
     static ref INDEX_BYTES_OFFSET: Mutex<u32> = Mutex::new(0);
@@ -125,19 +126,25 @@ fn get_default_shader_program_gl() -> GLuint {
 }
 
 pub fn get_default_shader_program() -> GLuint {
+    let mut shader_program: GLuint = *DEFAULT_SHADER_PROGRAM.lock().unwrap();
+    if shader_program > 0 {
+        return shader_program;
+    }
+
     let (tx, rx) = mpsc::channel::<GLuint>();
     channel::push(Box::new(move || {
         GLAPP.with(|handle| {
-            let mut default_shader_program: GLuint = 0;
+            let mut program: GLuint = 0;
             if let Some(ref glapp) = *handle.borrow() {
-                default_shader_program = glapp.default_shader_program;
+                program = glapp.default_shader_program;
             }
-            tx.send(default_shader_program).unwrap();
+            tx.send(program).unwrap();
         });
     }));
     channel::send();
-    let p = rx.recv().unwrap();
-    p
+    let mut default_shader_program = DEFAULT_SHADER_PROGRAM.lock().unwrap();
+    *default_shader_program = rx.recv().unwrap();
+    *default_shader_program
 }
 
 pub fn get_shader_program(vertex_shader_src: String, fragment_shader_src: String) -> GLuint {
