@@ -315,11 +315,7 @@ impl GLApp {
         (self.object_index + 1) % N_BUFFERS
     }
 
-    pub fn upload_data(
-        &mut self,
-        vertex_data: &Vec<GLfloat>,
-        index_data: &Vec<GLuint>
-    ) {
+    pub fn upload_data(&mut self, vertex_data: &Vec<GLfloat>, index_data: &Vec<GLuint>) {
         let next_index = self.get_next_index();
         let vbo = self.vaos[next_index];
         let ebo = self.ebos[next_index];
@@ -348,7 +344,12 @@ impl GLApp {
     pub fn get_current_objects(&mut self) -> (GLuint, GLuint, GLuint, usize) {
         let current_index = self.object_index;
         self.object_index = self.get_next_index();
-        (self.vaos[current_index], self.vbos[current_index], self.ebos[current_index], self.n_indices[current_index])
+        (
+            self.vaos[current_index],
+            self.vbos[current_index],
+            self.ebos[current_index],
+            self.n_indices[current_index],
+        )
     }
 
     pub fn size(&mut self, w: u32, h: u32) {
@@ -424,9 +425,9 @@ pub fn append_vertices(points: &Vec<Point>, uvs: &Vec<f32>, color: &Color) -> us
     let count = vertex_data.len() / 3;
     for i in 0..count {
         let vd_offset = i * 3;
-        vertices.extend_from_slice(&vertex_data[vd_offset..vd_offset+3]);
+        vertices.extend_from_slice(&vertex_data[vd_offset..vd_offset + 3]);
         let uv_offset = i * 2;
-        vertices.extend_from_slice(&uvs[uv_offset..uv_offset+2]);
+        vertices.extend_from_slice(&uvs[uv_offset..uv_offset + 2]);
         vertices.extend_from_slice(color.as_vec4().as_slice());
     }
     total_vertices_before
@@ -467,7 +468,8 @@ pub fn append_shape(shader_program: GLuint, n_triangles: u32) {
         index_byte_offset,
         n_triangles,
     });
-    *INDEX_BYTES_OFFSET.lock().unwrap() += ((n_triangles + 2) * size_of::<GLuint>() as u32) as GLuint;
+    *INDEX_BYTES_OFFSET.lock().unwrap() +=
+        ((n_triangles + 2) * size_of::<GLuint>() as u32) as GLuint;
 }
 
 fn drain_shapes() -> Vec<GLShape> {
