@@ -161,13 +161,13 @@ pub fn get_shader_program(vertex_shader_src: String, fragment_shader_src: String
         channel::push(Box::new(move || {
             let vertex_shader = compile_shader(&vertex_shader_src, gl::VERTEX_SHADER);
             let fragment_shader = compile_shader(&fragment_shader_src, gl::FRAGMENT_SHADER);
-            let shader_program = link_program(vertex_shader, fragment_shader);
+            let program = link_program(vertex_shader, fragment_shader);
 
             unsafe {
                 gl::DeleteShader(vertex_shader);
                 gl::DeleteShader(fragment_shader);
             }
-            tx.send(shader_program).unwrap();
+            tx.send(program).unwrap();
         }));
         channel::send();
         shader_program = rx.recv().unwrap();
@@ -201,10 +201,17 @@ pub fn size(w: u32, h: u32) {
     channel::send();
 }
 
+const N_BUFFERS: usize = 1;
+
 struct GLApp {
     events_loop: glutin::EventsLoop,
     gl_window: glutin::GlWindow,
     default_shader_program: GLuint,
+    vaos: [GLuint; N_BUFFERS],
+    vbos: [GLuint; N_BUFFERS],
+    ebos: [GLuint; N_BUFFERS],
+    n_indices: [usize; N_BUFFERS],
+    object_index: usize,
 }
 
 impl GLApp {
@@ -227,7 +234,12 @@ impl GLApp {
         GLApp {
             events_loop,
             gl_window,
-            default_shader_program: 123456, // FIXME: Is there any good value to use here?
+            default_shader_program: 0,
+            vaos: [0; N_BUFFERS],
+            vbos: [0; N_BUFFERS],
+            ebos: [0; N_BUFFERS],
+            n_indices: [0; N_BUFFERS],
+            object_index: 0,
         }
     }
 
@@ -245,6 +257,98 @@ impl GLApp {
         let vertex_shader = compile_shader(&DEFAULT_VERTEX_SHADER, gl::VERTEX_SHADER);
         let fragment_shader = compile_shader(&DEFAULT_FRAGMENT_SHADER, gl::FRAGMENT_SHADER);
         self.default_shader_program = link_program(vertex_shader, fragment_shader);
+
+        self.init_gl_objects();
+    }
+
+    fn init_gl_objects(&mut self) {
+        unsafe {
+            gl::GenVertexArrays(N_BUFFERS as GLsizei, self.vaos.as_mut_ptr());
+            gl::GenBuffers(N_BUFFERS as GLsizei, self.vbos.as_mut_ptr());
+            gl::GenBuffers(N_BUFFERS as GLsizei, self.ebos.as_mut_ptr());
+            for i in 0..N_BUFFERS {
+                let vao = self.vaos[i];
+                let vbo = self.vbos[i];
+                let ebo = self.ebos[i];
+
+                gl::BindVertexArray(vao);
+                gl::BindBuffer(gl::ARRAY_BUFFER, vbo);
+                gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, ebo);
+
+                let pos_attr: GLuint = 0;
+                gl::VertexAttribPointer(
+                    pos_attr,
+                    3,
+                    gl::FLOAT,
+                    gl::FALSE as GLboolean,
+                    (VBO_STRIDE_N * size_of::<GLfloat>()) as GLint,
+                    ptr::null(),
+                );
+                gl::EnableVertexAttribArray(pos_attr);
+
+                let uv_attr: GLuint = 1;
+                gl::VertexAttribPointer(
+                    uv_attr,
+                    2,
+                    gl::FLOAT,
+                    gl::FALSE as GLboolean,
+                    (VBO_STRIDE_N * size_of::<GLfloat>()) as GLint,
+                    (3 * size_of::<GLfloat>()) as *const c_void,
+                );
+                gl::EnableVertexAttribArray(uv_attr);
+
+                let col_attr: GLuint = 2;
+                gl::VertexAttribPointer(
+                    col_attr,
+                    4,
+                    gl::FLOAT,
+                    gl::FALSE as GLboolean,
+                    (VBO_STRIDE_N * size_of::<GLfloat>()) as GLint,
+                    (5 * size_of::<GLfloat>()) as *const c_void,
+                );
+                gl::EnableVertexAttribArray(col_attr);
+            }
+        }
+    }
+
+    fn get_next_index(&self) -> usize {
+        (self.object_index + 1) % N_BUFFERS
+    }
+
+    pub fn upload_data(
+        &mut self,
+        vertex_data: &Vec<GLfloat>,
+        index_data: &Vec<GLuint>
+    ) {
+        let next_index = self.get_next_index();
+        let vbo = self.vaos[next_index];
+        let ebo = self.ebos[next_index];
+        self.n_indices[next_index] = index_data.len();
+
+        unsafe {
+            gl::BindVertexArray(0);
+            gl::BindBuffer(gl::ARRAY_BUFFER, vbo);
+            gl::BufferData(
+                gl::ARRAY_BUFFER,
+                (vertex_data.len() * size_of::<GLfloat>()) as GLsizeiptr,
+                vertex_data.as_ptr() as *const c_void,
+                gl::STATIC_DRAW,
+            );
+
+            gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, ebo);
+            gl::BufferData(
+                gl::ELEMENT_ARRAY_BUFFER,
+                (index_data.len() * size_of::<GLuint>()) as GLsizeiptr,
+                index_data.as_ptr() as *const c_void,
+                gl::STATIC_DRAW,
+            );
+        }
+    }
+
+    pub fn get_current_objects(&mut self) -> (GLuint, GLuint, GLuint, usize) {
+        let current_index = self.object_index;
+        self.object_index = self.get_next_index();
+        (self.vaos[current_index], self.vbos[current_index], self.ebos[current_index], self.n_indices[current_index])
     }
 
     pub fn size(&mut self, w: u32, h: u32) {
@@ -277,78 +381,17 @@ impl GLApp {
     }
 }
 
-fn create_objects(vertex_data: &Vec<GLfloat>, index_data: &Vec<GLuint>) -> (GLuint, GLuint, GLuint) {
-    let mut vao = 0;
-    let mut vbo = 0;
-    let mut ebo = 0;
-
-    unsafe {
-        gl::GenVertexArrays(1, &mut vao);
-        gl::BindVertexArray(vao);
-
-        gl::GenBuffers(1, &mut vbo);
-        gl::BindBuffer(gl::ARRAY_BUFFER, vbo);
-        gl::BufferData(
-            gl::ARRAY_BUFFER,
-            (vertex_data.len() * size_of::<GLfloat>()) as GLsizeiptr,
-            vertex_data.as_ptr() as *const c_void,
-            gl::STATIC_DRAW,
-        );
-
-        gl::GenBuffers(1, &mut ebo);
-        gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, ebo);
-        gl::BufferData(
-            gl::ELEMENT_ARRAY_BUFFER,
-            (index_data.len() * size_of::<GLuint>()) as GLsizeiptr,
-            index_data.as_ptr() as *const c_void,
-            gl::STATIC_DRAW,
-        );
-
-        // Specify the layout of the vertex data
-        let pos_attr: GLuint = 0;
-        gl::VertexAttribPointer(
-            pos_attr,
-            3,
-            gl::FLOAT,
-            gl::FALSE as GLboolean,
-            (VBO_STRIDE_N * size_of::<GLfloat>()) as GLint,
-            ptr::null(),
-        );
-        gl::EnableVertexAttribArray(pos_attr);
-
-        // Specify the color
-        let col_attr: GLuint = 1;
-        gl::VertexAttribPointer(
-            col_attr,
-            4,
-            gl::FLOAT,
-            gl::FALSE as GLboolean,
-            (VBO_STRIDE_N * size_of::<GLfloat>()) as GLint,
-            (5 * size_of::<GLfloat>()) as *const c_void,
-        );
-        gl::EnableVertexAttribArray(col_attr);
-
-        // Specify the UVs
-        let uv_attr: GLuint = 2;
-        gl::VertexAttribPointer(
-            uv_attr,
-            2,
-            gl::FLOAT,
-            gl::FALSE as GLboolean,
-            (VBO_STRIDE_N * size_of::<GLfloat>()) as GLint,
-            (3 * size_of::<GLfloat>()) as *const c_void,
-        );
-        gl::EnableVertexAttribArray(uv_attr);
-    }
-
-    (vao, vbo, ebo)
-}
-
 fn point_to_vertex(point: &Point) -> [GLfloat; 3] {
-    let sketch = SKETCH.lock().unwrap();
-    let max_w = (sketch.width/2) as f32;
+    let width;
+    let height;
+    {
+        let sketch = SKETCH.lock().unwrap();
+        width = sketch.width as f32;
+        height = sketch.height as f32;
+    }
+    let max_w = 0.5 * width;
     let min_w = -max_w;
-    let max_h = (sketch.height/2) as f32;
+    let max_h = 0.5 * height;
     let min_h = -max_h;
     [
         map_f32(point.x, min_w, max_w, -1.0, 1.0) as GLfloat,
@@ -397,6 +440,14 @@ fn drain_vertices() -> Vec<GLfloat> {
 
 pub fn append_indices(offset: usize, index_data: Vec<u32>) {
     let mut indices = INDICES.lock().unwrap();
+    if !indices.is_empty() {
+        let mut repeated = 0;
+        if let Some(last) = indices.last() {
+            repeated = (*last).clone();
+        }
+        indices.push(repeated);
+        indices.push(offset as u32 + index_data[0]);
+    }
     for index in index_data {
         indices.push(offset as u32 + index);
     }
@@ -432,24 +483,34 @@ fn drain() -> (Vec<GLfloat>, Vec<u32>, Vec<GLShape>) {
 }
 
 pub fn render() {
-    let (vertices, indices, shapes) = drain();
+    let (vertices, indices, _) = drain();
     channel::push(Box::new(move || {
-        // prepare
-        let (vao, vbo, ebo) = create_objects(&vertices, &indices);
-        let default_shader_program = get_default_shader_program_gl();
+        // prepare next frame and get objects for this frame
+        let mut objects = (0, 0, 0, 0);
+        GLAPP.with(|handle| {
+            if let Some(ref mut glapp) = *handle.borrow_mut() {
+                glapp.upload_data(&vertices, &indices);
+                objects = glapp.get_current_objects();
+            }
+        });
+
+        let n_indices = objects.3;
+        if n_indices == 0 {
+            return;
+        }
 
         // draw
+        let vao = objects.0;
+        let default_shader_program = get_default_shader_program_gl();
         unsafe {
+            gl::UseProgram(default_shader_program);
             gl::BindVertexArray(vao);
-            for shape in shapes {
-                gl::UseProgram(shape.shader_program);
-                gl::DrawElements(
-                    gl::TRIANGLE_STRIP,
-                    (shape.n_triangles + 2) as GLsizei,
-                    gl::UNSIGNED_INT,
-                    shape.index_byte_offset as *const c_void
-                );
-            }
+            gl::DrawElements(
+                gl::TRIANGLE_STRIP,
+                n_indices as GLsizei,
+                gl::UNSIGNED_INT,
+                ptr::null(),
+            );
         }
 
         // cleanup
@@ -458,9 +519,6 @@ pub fn render() {
             for (_, shader) in shaders.drain().take(1) {
                 gl::DeleteProgram(shader);
             }
-            gl::DeleteBuffers(1, &ebo);
-            gl::DeleteBuffers(1, &vbo);
-            gl::DeleteVertexArrays(1, &vao);
         }
     }));
 }

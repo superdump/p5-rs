@@ -31,8 +31,8 @@ use std::str;
 
 pub const DEFAULT_VERTEX_SHADER: &'static str = "#version 330 core\n\
     layout (location = 0) in vec3 position;\n\
-    layout (location = 1) in vec4 a_color;\n\
-    layout (location = 2) in vec2 uv;\n\
+    layout (location = 1) in vec2 uv;\n\
+    layout (location = 2) in vec4 a_color;\n\
     out vec4 color;\n\
     out vec2 tex_coord;\n\
     void main() {\n\
