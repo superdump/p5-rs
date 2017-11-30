@@ -30,7 +30,7 @@ use p5::*;
 use rand::Rng;
 use rand::distributions::{IndependentSample, Range};
 
-const N_OBJECTS: usize = 10_000;
+const N_OBJECTS: usize = 100_000;
 
 static mut POINTS: Option<Vec<Point>> = None;
 
@@ -57,12 +57,19 @@ fn setup() {
 
 fn draw() {
     stroke((1.0, 1.0, 1.0, 0.3));
+    fill((1.0, 1.0, 1.0, 0.3));
     strokeWeight(12);
+
     unsafe {
         if let Some(ref ps) = POINTS {
-            let offset: Point = (6.0, -12.0).into();
+            let off1: Point = (12.0, 0.0).into();
+            let off2: Point = (6.0, 12.0).into();
             for p in ps {
-                point(*p);
+                triangle(
+                    *p,
+                    *p + off1,
+                    *p + off2,
+                );
             }
         }
     }
