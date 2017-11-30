@@ -145,16 +145,16 @@ pub fn get_shader_program(vertex_shader_src: String, fragment_shader_src: String
     let mut fragment_shader_src = fragment_shader_src;
     let mut shader_program = get_default_shader_program();
 
-    let concat = format!("{}{}", vertex_shader_src, fragment_shader_src);
-    if let Some(shader_program) = SHADERS.lock().unwrap().get(&concat) {
-        return *shader_program
-    }
-
     if vertex_shader_src.len() > 0 || fragment_shader_src.len() > 0 {
         if vertex_shader_src.len() == 0 {
             vertex_shader_src = String::from(DEFAULT_VERTEX_SHADER);
         } else if fragment_shader_src.len() == 0 {
             fragment_shader_src = String::from(DEFAULT_FRAGMENT_SHADER);
+        }
+
+        let concat = format!("{}{}", vertex_shader_src, fragment_shader_src);
+        if let Some(program) = SHADERS.lock().unwrap().get(&concat) {
+            return *program;
         }
 
         let (tx, rx) = mpsc::channel::<GLuint>();
@@ -171,8 +171,8 @@ pub fn get_shader_program(vertex_shader_src: String, fragment_shader_src: String
         }));
         channel::send();
         shader_program = rx.recv().unwrap();
+        SHADERS.lock().unwrap().insert(concat, shader_program);
     }
-    SHADERS.lock().unwrap().insert(concat, shader_program);
     shader_program
 }
 
