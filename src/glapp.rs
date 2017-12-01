@@ -194,6 +194,12 @@ pub fn size(w: u32, h: u32) {
         let mut sketch = SKETCH.lock().unwrap();
         sketch.width = w.clone();
         sketch.height = h.clone();
+        sketch.transformation =
+            Transform3::from_matrix_unchecked(Matrix4::new_nonuniform_scaling(&Vector3::new(
+                2.0 / w as f32,
+                2.0 / h as f32,
+                2.0 / h as f32,
+            )));
     }
     channel::push(Box::new(move || {
         GLAPP.with(|handle| {
@@ -204,6 +210,10 @@ pub fn size(w: u32, h: u32) {
         });
     }));
     channel::send();
+}
+
+pub fn get_transform() -> Transform3<f32> {
+    SKETCH.lock().unwrap().transformation.clone()
 }
 
 const N_BUFFERS: usize = 1;

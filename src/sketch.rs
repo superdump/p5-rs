@@ -22,10 +22,12 @@
  * SOFTWARE.
  */
 
-use std::sync::Mutex;
-
 use color::*;
 use glapp::{DEFAULT_WIDTH, DEFAULT_HEIGHT};
+
+use na::Transform3;
+
+use std::sync::Mutex;
 
 lazy_static! {
     pub static ref SKETCH: Mutex<Sketch> = Mutex::new(Sketch::new());
@@ -38,6 +40,7 @@ pub struct Sketch {
     pub fill: Color,
     pub stroke: Color,
     pub stroke_weight: u32,
+    pub transformation: Transform3<f32>,
 }
 
 impl Sketch {
@@ -49,6 +52,7 @@ impl Sketch {
             fill: (0.0, 1.0, 0.0).into(),
             stroke: 0.0.into(),
             stroke_weight: 1,
+            transformation: Transform3::identity(),
         }
     }
 }
