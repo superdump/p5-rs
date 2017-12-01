@@ -27,14 +27,13 @@ extern crate libc;
 
 use channel;
 use color::*;
-use point::*;
 use sketch::SKETCH;
 use shader::*;
-use utils::map_f32;
 
 use self::glutin::GlContext;
 use gl;
 use gl::types::*;
+use na::{Matrix4, Point3, Transform3, Vector3};
 
 use std::cell::RefCell;
 use std::collections::HashMap;
@@ -126,7 +125,7 @@ fn get_default_shader_program_gl() -> GLuint {
 }
 
 pub fn get_default_shader_program() -> GLuint {
-    let mut shader_program: GLuint = *DEFAULT_SHADER_PROGRAM.lock().unwrap();
+    let shader_program: GLuint = *DEFAULT_SHADER_PROGRAM.lock().unwrap();
     if shader_program > 0 {
         return shader_program;
     }
@@ -184,9 +183,8 @@ pub fn get_shader_program(vertex_shader_src: String, fragment_shader_src: String
 }
 
 pub fn background(color: &Color) {
-    let &Color { r, g, b, a } = color;
     unsafe {
-        gl::ClearColor(r, g, b, a);
+        gl::ClearColor(color.x, color.y, color.z, color.w);
         gl::Clear(gl::COLOR_BUFFER_BIT);
     }
 }
@@ -389,7 +387,8 @@ impl GLApp {
     }
 }
 
-fn point_to_vertex(point: &Point) -> [GLfloat; 3] {
+pub fn points_to_vertices(points: &Vec<Point3<f32>>) -> Vec<GLfloat> {
+    let mut vertices = Vec::with_capacity(points.len() * 3);
     let width;
     let height;
     {
@@ -397,22 +396,18 @@ fn point_to_vertex(point: &Point) -> [GLfloat; 3] {
         width = sketch.width as f32;
         height = sketch.height as f32;
     }
-    let max_w = 0.5 * width;
-    let min_w = -max_w;
-    let max_h = 0.5 * height;
-    let min_h = -max_h;
-    [
-        map_f32(point.x, min_w, max_w, -1.0, 1.0) as GLfloat,
-        map_f32(point.y, min_h, max_h, -1.0, 1.0) as GLfloat,
-        map_f32(point.z, min_h, max_h, -1.0, 1.0) as GLfloat, // FIXME: think about how to convert z
-    ]
-}
-
-pub fn points_to_vertices(points: &Vec<Point>) -> Vec<GLfloat> {
-    let mut vertices = Vec::new();
+    let transformation = Transform3::from_matrix_unchecked(
+        Matrix4::new_nonuniform_scaling(
+            &Vector3::new(
+                2.0 / width,
+                2.0 / height,
+                2.0 / height
+            )
+        )
+    );
     for point in points {
-        let vertex = point_to_vertex(point);
-        vertices.extend_from_slice(&vertex);
+        let vertex = transformation * point;
+        vertices.extend_from_slice(vertex.coords.as_slice());
     }
     vertices
 }
@@ -425,17 +420,18 @@ pub fn points_to_vertices(points: &Vec<Point>) -> Vec<GLfloat> {
 // color is rgba as 4 GLfloat (16 bytes)
 // the stride is therefore 9 GLfloat (36 bytes)
 const VBO_STRIDE_N: usize = 9;
-pub fn append_vertices(points: &Vec<Point>, uvs: &Vec<f32>, color: &Color) -> usize {
+pub fn append_vertices(points: &Vec<Point3<f32>>, uvs: &Vec<f32>, color: &Color) -> usize {
     let vertex_data = points_to_vertices(points);
+    let count = vertex_data.len() / 3;
     let mut vertices = VERTICES.lock().unwrap();
     let total_vertices_before = vertices.len() / VBO_STRIDE_N;
-    let count = vertex_data.len() / 3;
+    vertices.reserve(count * VBO_STRIDE_N);
     for i in 0..count {
         let vd_offset = i * 3;
         vertices.extend_from_slice(&vertex_data[vd_offset..vd_offset + 3]);
         let uv_offset = i * 2;
         vertices.extend_from_slice(&uvs[uv_offset..uv_offset + 2]);
-        vertices.extend_from_slice(color.as_vec4().as_slice());
+        vertices.extend_from_slice(color.as_slice());
     }
     total_vertices_before
 }
@@ -446,9 +442,12 @@ fn drain_vertices() -> Vec<GLfloat> {
     drained
 }
 
-pub fn append_indices(offset: usize, index_data: Vec<u32>) {
+pub fn append_indices(offset: usize, index_data: &Vec<u32>) {
     let mut indices = INDICES.lock().unwrap();
-    if !indices.is_empty() {
+    if indices.is_empty() {
+        indices.reserve(index_data.len());
+    } else {
+        indices.reserve(index_data.len() + 2);
         let mut repeated = 0;
         if let Some(last) = indices.last() {
             repeated = (*last).clone();
