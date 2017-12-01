@@ -41,7 +41,7 @@ fn setup() {
     size(WIDTH, HEIGHT);
     background(0.2);
 
-    let between = Range::new(-((WIDTH/2) as f32), (WIDTH/2) as f32);
+    let between = Range::new(-((WIDTH / 2) as f32), (WIDTH / 2) as f32);
     let mut rng = rand::thread_rng();
     let mut ps: Vec<Point3<f32>> = Vec::with_capacity(N_OBJECTS);
     for _ in 0..N_OBJECTS {
@@ -66,11 +66,7 @@ fn draw() {
             let off1: Vector3<f32> = Vector3::new(12.0, 0.0, 0.0);
             let off2: Vector3<f32> = Vector3::new(6.0, 12.0, 0.0);
             for p in ps {
-                triangle(
-                    *p,
-                    *p + off1,
-                    *p + off2,
-                );
+                triangle(*p, *p + off1, *p + off2);
             }
         }
     }
