@@ -38,14 +38,14 @@ enum Direction {
 
 #[derive(Debug)]
 struct Cell {
-    corners: Vec<Point>,
+    corners: Vec<Point3<f32>>,
     walls: Vec<bool>,
 }
 
 impl Cell {
-    fn new(top_left: Point, width: f32, height: f32) -> Cell {
-        let right: Point = (width, 0.0).into();
-        let down: Point = (0.0, -height).into();
+    fn new(top_left: Point3<f32>, width: f32, height: f32) -> Cell {
+        let right: Vector3<f32> = Vector3::new(width, 0.0, 0.0);
+        let down: Vector3<f32> = Vector3::new(0.0, -height, 0.0);
         let top_right = top_left + right;
         let bottom_right = top_left + right + down;
         let bottom_left = top_left + down;
@@ -241,11 +241,12 @@ fn index(i: i32, j: i32) -> usize {
     (j * COLS + i) as usize
 }
 
-fn cell_to_point(i: i32, j: i32) -> Point {
-    (
+fn cell_to_point(i: i32, j: i32) -> Point3<f32> {
+    Point3::new(
         (-WIDTH/2 + i * CELL_WIDTH) as f32,
         (HEIGHT/2 - j * CELL_HEIGHT) as f32,
-    ).into()
+        0.0,
+    )
 }
 
 fn setup() {

@@ -32,7 +32,7 @@ use rand::distributions::{IndependentSample, Range};
 
 const N_OBJECTS: usize = 100_000;
 
-static mut POINTS: Option<Vec<Point>> = None;
+static mut POINTS: Option<Vec<Point3<f32>>> = None;
 
 const WIDTH: u32 = 800;
 const HEIGHT: u32 = 800;
@@ -43,12 +43,13 @@ fn setup() {
 
     let between = Range::new(-((WIDTH/2) as f32), (WIDTH/2) as f32);
     let mut rng = rand::thread_rng();
-    let mut ps: Vec<Point> = Vec::with_capacity(N_OBJECTS);
+    let mut ps: Vec<Point3<f32>> = Vec::with_capacity(N_OBJECTS);
     for _ in 0..N_OBJECTS {
-        ps.push((
+        ps.push(Point3::new(
             between.ind_sample(&mut rng),
-            between.ind_sample(&mut rng)
-        ).into());
+            between.ind_sample(&mut rng),
+            0.0,
+        ));
     }
     unsafe {
         POINTS = Some(ps);
@@ -62,8 +63,8 @@ fn draw() {
 
     unsafe {
         if let Some(ref ps) = POINTS {
-            let off1: Point = (12.0, 0.0).into();
-            let off2: Point = (6.0, 12.0).into();
+            let off1: Vector3<f32> = Vector3::new(12.0, 0.0, 0.0);
+            let off2: Vector3<f32> = Vector3::new(6.0, 12.0, 0.0);
             for p in ps {
                 triangle(
                     *p,

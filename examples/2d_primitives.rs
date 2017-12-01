@@ -27,81 +27,73 @@ extern crate p5;
 use p5::*;
 
 static mut t: f32 = 0.0;
-static p1: Point = Point {
-    x: -50.0,
-    y: -50.0,
-    z: 0.0,
-};
-static p2: Point = Point {
-    x: 0.0,
-    y: 43.0,
-    z: 0.0,
-};
-static p3: Point = Point {
-    x: 50.0,
-    y: -50.0,
-    z: 0.0,
-};
-static tl: Point = Point {
-    x: -50.0,
-    y: 50.0,
-    z: 0.0,
-};
-static br: Point = Point {
-    x: 50.0,
-    y: -50.0,
-    z: 0.0,
-};
 
 fn setup() {
     size(400, 400);
     background(0.2);
 }
 
-fn point_on_circle(center: &Point, radius: f32, sin: f32, cos: f32) -> Point {
-    Point {
-        x: center.x + radius * sin,
-        y: center.y + radius * cos,
-        z: center.z,
-    }
-}
-
+const radius: f32 = 100.0;
 fn draw() {
-    let origin: Point = (0.0, 0.0).into();
-    let radius: f32 = 100.0;
-    let mut sin: f32;
-    let mut cos: f32;
+    let radius_offset: Vector3<f32> = Vector3::new(radius, 0.0, 0.0);
 
-    unsafe {
-        sin = t.sin();
-        cos = t.cos();
-    }
+    let p1: Point3<f32> = Point3::new(
+        -50.0,
+        -50.0,
+        0.0,
+    );
+    let p2: Point3<f32> = Point3::new(
+        0.0,
+        43.0,
+        0.0,
+    );
+    let p3: Point3<f32> = Point3::new(
+        50.0,
+        -50.0,
+        0.0,
+    );
+    let tl: Point3<f32> = Point3::new(
+        -50.0,
+        50.0,
+        0.0,
+    );
+    let br: Point3<f32> = Point3::new(
+        50.0,
+        -50.0,
+        0.0,
+    );
+
     fill((1.0, 0.0, 0.0));
     pushMatrix();
-    let triCenter = point_on_circle(&origin, radius, sin, cos);
-    translate(triCenter);
+    translate(&radius_offset);
+    unsafe {
+        rotate(t);
+    }
     triangle(p1, p2, p3);
     popMatrix();
 
+    fill((0.0, 1.0, 0.0));
+    pushMatrix();
+    let sin;
+    let cos;
     unsafe {
         sin = (t + std::f32::consts::FRAC_PI_2).sin();
         cos = (t + std::f32::consts::FRAC_PI_2).sin();
     }
-    fill((0.0, 1.0, 0.0));
-    pushMatrix();
-    let ellipseCenter = point_on_circle(&origin, radius, sin, cos);
-    translate(ellipseCenter);
-    ellipse(origin, 200.0, 100.0);
+    translate(&Vector3::new(
+        radius * sin,
+        radius * cos,
+        0.0,
+    ));
+    ellipse(Point3::origin(), 200.0, 100.0);
     popMatrix();
 
-    unsafe {
-        sin = (t + std::f32::consts::PI).sin();
-        cos = (t + std::f32::consts::PI).cos();
-    }
     fill((0.0, 0.0, 1.0));
     pushMatrix();
-    let rectCenter = point_on_circle(&origin, radius, sin, cos);
-    translate(rectCenter);
+    translate(&radius_offset);
+    unsafe {
+        rotate(t + std::f32::consts::PI);
+    }
     rect(tl, br);
     popMatrix();
 
@@ -112,11 +104,14 @@ fn draw() {
     unsafe {
         rotate(0.5 * t);
     }
-    line((-0.75 * radius, 0.0), (0.75 * radius, 0.0));
+    line(
+        Point3::new(-0.75 * radius, 0.0, 0.0),
+        Point3::new(0.75 * radius, 0.0, 0.0)
+    );
     popMatrix();
 
     stroke((0.0, 1.0, 1.0));
-    point(origin);
+    point(Point3::origin());
 
     unsafe {
         t += 0.03;

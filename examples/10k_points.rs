@@ -32,7 +32,7 @@ use rand::distributions::{IndependentSample, Range};
 
 const N_OBJECTS: usize = 10_000;
 
-static mut POINTS: Option<Vec<Point>> = None;
+static mut POINTS: Option<Vec<Point3<f32>>> = None;
 
 const WIDTH: u32 = 800;
 const HEIGHT: u32 = 800;
@@ -43,12 +43,13 @@ fn setup() {
 
     let between = Range::new(-((WIDTH/2) as f32), (WIDTH/2) as f32);
     let mut rng = rand::thread_rng();
-    let mut ps: Vec<Point> = Vec::with_capacity(N_OBJECTS);
+    let mut ps: Vec<Point3<f32>> = Vec::with_capacity(N_OBJECTS);
     for _ in 0..N_OBJECTS {
-        ps.push((
+        ps.push(Point3::new(
             between.ind_sample(&mut rng),
-            between.ind_sample(&mut rng)
-        ).into());
+            between.ind_sample(&mut rng),
+            0.0,
+        ));
     }
     unsafe {
         POINTS = Some(ps);
@@ -60,7 +61,6 @@ fn draw() {
     strokeWeight(12);
     unsafe {
         if let Some(ref ps) = POINTS {
-            let offset: Point = (6.0, -12.0).into();
             for p in ps {
                 point(*p);
             }
