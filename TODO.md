@@ -53,6 +53,8 @@
             * Maze generator solid 60fps
     * ystreet0 (Matthew Waters) suggested to upload data in one frame and render it in the next - essentially double-buffering
         * Implemented but doesn't seem to help.
+    * Avoid allocations from Vec with slices
+        * 100k triangles up to 19fps
 * Infrastructure
     * `setup()`, `draw()`
 * Global state
