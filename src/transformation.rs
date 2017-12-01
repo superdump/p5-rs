@@ -22,33 +22,34 @@
  * SOFTWARE.
  */
 
-use matrix::*;
-use point::Point;
+use na::{Matrix4, Rotation3, Transform3, Translation, Vector3};
 
 use std::sync::Mutex;
 
 lazy_static! {
-    static ref TRANSFORMATION_STACK: Mutex<Vec<Matrix>> = Mutex::new(vec![Matrix::identity(4, 4)]);
+    static ref TRANSFORMATION_STACK: Mutex<Vec<Transform3<f32>>> = Mutex::new(vec![Transform3::identity()]);
 }
 
 pub fn reset() {
     let mut transformation_stack = TRANSFORMATION_STACK.lock().unwrap();
     transformation_stack.truncate(0);
-    transformation_stack.push(Matrix::identity(4, 4));
+    transformation_stack.push(Transform3::identity());
 }
 
-pub fn getTransformations() -> Matrix {
+pub fn getTransformations() -> Transform3<f32> {
     if let Some(transformations) = TRANSFORMATION_STACK.lock().unwrap().last() {
         return transformations.clone();
     }
-    Matrix::identity(4, 4)
+    Transform3::identity()
 }
 
 pub fn pushMatrix() {
     let mut transformation_stack = TRANSFORMATION_STACK.lock().unwrap();
-    let mut clone = Matrix::identity(4, 4);
+    let clone;
     if let Some(top) = transformation_stack.last() {
         clone = top.clone();
+    } else {
+        clone = Transform3::identity();
     }
     transformation_stack.push(clone);
 }
@@ -57,38 +58,38 @@ pub fn popMatrix() {
     TRANSFORMATION_STACK.lock().unwrap().pop();
 }
 
-pub fn translate<P: Into<Point>>(translation: P) {
-    if let Some(ref mut transformation) = TRANSFORMATION_STACK.lock().unwrap().last_mut() {
-        transformation.translate(translation.into());
+pub fn translate(translation: &Vector3<f32>) {
+    if let Some(transformation) = TRANSFORMATION_STACK.lock().unwrap().last_mut() {
+        *transformation = Translation::from_vector(*translation) * *transformation;
     }
 }
 
 pub fn rotate(angle: f32) {
-    if let Some(ref mut transformation) = TRANSFORMATION_STACK.lock().unwrap().last_mut() {
-        transformation.rotateZ(angle);
-    }
+    rotateZ(angle);
 }
 
 pub fn rotateX(angle: f32) {
-    if let Some(ref mut transformation) = TRANSFORMATION_STACK.lock().unwrap().last_mut() {
-        transformation.rotateX(angle);
+    if let Some(transformation) = TRANSFORMATION_STACK.lock().unwrap().last_mut() {
+        *transformation = Rotation3::from_scaled_axis(&Vector3::x() * angle) * *transformation;
     }
 }
 
 pub fn rotateY(angle: f32) {
-    if let Some(ref mut transformation) = TRANSFORMATION_STACK.lock().unwrap().last_mut() {
-        transformation.rotateY(angle);
+    if let Some(transformation) = TRANSFORMATION_STACK.lock().unwrap().last_mut() {
+        *transformation = Rotation3::from_scaled_axis(&Vector3::y() * angle) * *transformation;
     }
 }
 
 pub fn rotateZ(angle: f32) {
-    if let Some(ref mut transformation) = TRANSFORMATION_STACK.lock().unwrap().last_mut() {
-        transformation.rotateZ(angle);
+    if let Some(transformation) = TRANSFORMATION_STACK.lock().unwrap().last_mut() {
+        *transformation = Rotation3::from_scaled_axis(&Vector3::z() * angle) * *transformation;
     }
 }
 
-pub fn scale<P: Into<Point>>(factor: P) {
-    if let Some(ref mut transformation) = TRANSFORMATION_STACK.lock().unwrap().last_mut() {
-        transformation.scale(factor.into());
+pub fn scale(factors: &Vector3<f32>) {
+    if let Some(transformation) = TRANSFORMATION_STACK.lock().unwrap().last_mut() {
+        *transformation = Transform3::from_matrix_unchecked(
+            Matrix4::new_nonuniform_scaling(factors)
+        ) * *transformation;
     }
 }
