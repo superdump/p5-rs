@@ -27,130 +27,17 @@ use shape::Shape;
 use sketch::get_stroke_weight;
 use transformation::getTransformations;
 
-use std::fmt;
-use std::ops::{Add, Sub};
+use na::Point3;
 
-pub fn point<P: Into<Point>>(point: P) {
+pub fn point(point: Point3<f32>) {
     let diameter = get_stroke_weight();
     let transformations = getTransformations();
     Ellipse::new(
-        point.into(),
+        point,
         diameter as f32,
         diameter as f32,
         16,
         true,
         transformations,
     ).draw();
-}
-
-#[derive(Copy, Clone, Debug)]
-pub struct Point {
-    pub x: f32,
-    pub y: f32,
-    pub z: f32,
-}
-
-impl Point {
-    pub fn new(x: f32, y: f32, z: f32) -> Point {
-        Point { x: x, y: y, z: z }
-    }
-    pub fn mag(&self) -> f32 {
-        (self.x * self.x + self.y * self.y + self.z * self.z).sqrt()
-    }
-    pub fn setMag(&mut self, new_mag: f32) {
-        let scale = new_mag / self.mag();
-        self.x *= scale;
-        self.y *= scale;
-        self.z *= scale;
-    }
-    pub fn normalize(&mut self) {
-        self.setMag(1.0);
-    }
-}
-
-impl fmt::Display for Point {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "({:8.3}, {:8.3}, {:8.3})", self.x, self.y, self.z)
-    }
-}
-
-impl From<(f32, f32)> for Point {
-    fn from(p: (f32, f32)) -> Self {
-        Point {
-            x: p.0,
-            y: p.1,
-            z: 0.0,
-        }
-    }
-}
-
-impl From<(f32, f32, f32)> for Point {
-    fn from(p: (f32, f32, f32)) -> Self {
-        Point {
-            x: p.0,
-            y: p.1,
-            z: p.2,
-        }
-    }
-}
-
-impl<'a, 'b> Add<&'b Point> for &'a Point {
-    type Output = Point;
-
-    fn add(self, other: &'b Point) -> Point {
-        Point {
-            x: self.x + other.x,
-            y: self.y + other.y,
-            z: self.z + other.z,
-        }
-    }
-}
-
-impl<'a> Add<&'a Point> for Point {
-    type Output = Point;
-
-    fn add(self, other: &'a Point) -> Point {
-        Point {
-            x: self.x + other.x,
-            y: self.y + other.y,
-            z: self.z + other.z,
-        }
-    }
-}
-
-
-impl<'a> Add<Point> for &'a Point {
-    type Output = Point;
-
-    fn add(self, other: Point) -> Point {
-        Point {
-            x: self.x + other.x,
-            y: self.y + other.y,
-            z: self.z + other.z,
-        }
-    }
-}
-
-impl Add for Point {
-    type Output = Point;
-
-    fn add(self, other: Point) -> Point {
-        Point {
-            x: self.x + other.x,
-            y: self.y + other.y,
-            z: self.z + other.z,
-        }
-    }
-}
-
-impl Sub for Point {
-    type Output = Point;
-
-    fn sub(self, other: Point) -> Point {
-        Point {
-            x: self.x - other.x,
-            y: self.y - other.y,
-            z: self.z - other.z,
-        }
-    }
 }
