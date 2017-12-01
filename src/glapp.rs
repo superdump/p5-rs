@@ -146,17 +146,16 @@ pub fn get_default_shader_program() -> GLuint {
     *default_shader_program
 }
 
-pub fn get_shader_program(vertex_shader_src: String, fragment_shader_src: String) -> GLuint {
-    let mut vertex_shader_src = vertex_shader_src;
-    let mut fragment_shader_src = fragment_shader_src;
+pub fn get_shader_program(
+    vertex_shader_src: Option<String>,
+    fragment_shader_src: Option<String>,
+) -> GLuint {
     let mut shader_program = get_default_shader_program();
 
-    if vertex_shader_src.len() > 0 || fragment_shader_src.len() > 0 {
-        if vertex_shader_src.len() == 0 {
-            vertex_shader_src = String::from(DEFAULT_VERTEX_SHADER);
-        } else if fragment_shader_src.len() == 0 {
-            fragment_shader_src = String::from(DEFAULT_FRAGMENT_SHADER);
-        }
+    if vertex_shader_src != None || fragment_shader_src != None {
+        let vertex_shader_src = vertex_shader_src.unwrap_or(String::from(DEFAULT_VERTEX_SHADER));
+        let fragment_shader_src =
+            fragment_shader_src.unwrap_or(String::from(DEFAULT_FRAGMENT_SHADER));
 
         let concat = format!("{}{}", vertex_shader_src, fragment_shader_src);
         if let Some(program) = SHADERS.lock().unwrap().get(&concat) {

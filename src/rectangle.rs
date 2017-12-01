@@ -123,11 +123,11 @@ impl Shape for Rectangle {
     fn indices(&self) -> Vec<u32> {
         vec![0, 1, 2, 3]
     }
-    fn vertex_shader(&self) -> String {
-        String::from("")
+    fn vertex_shader(&self) -> Option<String> {
+        None
     }
-    fn fragment_shader(&self) -> String {
-        String::from("")
+    fn fragment_shader(&self) -> Option<String> {
+        None
     }
     fn draw(&self) {
         shape::draw(self);

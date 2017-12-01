@@ -31,8 +31,8 @@ pub trait Shape {
     fn points(&self) -> &Vec<Point3<f32>>;
     fn uvs(&self) -> Vec<f32>;
     fn indices(&self) -> Vec<u32>;
-    fn vertex_shader(&self) -> String;
-    fn fragment_shader(&self) -> String;
+    fn vertex_shader(&self) -> Option<String>;
+    fn fragment_shader(&self) -> Option<String>;
     fn draw(&self);
     fn is_stroke(&self) -> bool;
 }
