@@ -26,50 +26,44 @@ use channel;
 use glapp;
 use sketch::*;
 
+use na::Vector4;
+
+use std::ops::{Deref, DerefMut};
+
 #[derive(Clone)]
-pub struct Color {
-    pub r: f32,
-    pub g: f32,
-    pub b: f32,
-    pub a: f32,
-}
+pub struct Color(Vector4<f32>);
 
 impl Color {
-    pub fn as_vec4(&self) -> Vec<f32> {
-        vec![self.r, self.g, self.b, self.a]
+    pub fn as_slice(&self) -> &[f32] {
+        self.0.as_slice()
+    }
+}
+
+impl Deref for Color {
+    type Target = Vector4<f32>;
+    fn deref(&self) -> &Vector4<f32> {
+        &self.0
+    }
+}
+impl DerefMut for Color {
+    fn deref_mut(&mut self) -> &mut Vector4<f32> {
+        &mut self.0
     }
 }
 
 impl From<(f32, f32, f32, f32)> for Color {
-    fn from(p: (f32, f32, f32, f32)) -> Self {
-        Color {
-            r: p.0,
-            g: p.1,
-            b: p.2,
-            a: p.3,
-        }
+    fn from(c: (f32, f32, f32, f32)) -> Color {
+        Color(Vector4::new(c.0, c.1, c.2, c.3))
     }
 }
-
 impl From<(f32, f32, f32)> for Color {
-    fn from(p: (f32, f32, f32)) -> Self {
-        Color {
-            r: p.0,
-            g: p.1,
-            b: p.2,
-            a: 1.0,
-        }
+    fn from(c: (f32, f32, f32)) -> Color {
+        Color(Vector4::new(c.0, c.1, c.2, 1.0))
     }
 }
-
 impl From<f32> for Color {
-    fn from(p: f32) -> Self {
-        Color {
-            r: p,
-            g: p,
-            b: p,
-            a: 1.0,
-        }
+    fn from(c: f32) -> Color {
+        Color(Vector4::new(c, c, c, 1.0))
     }
 }
 
@@ -81,7 +75,7 @@ pub fn draw_background() {
 }
 
 pub fn background<C: Into<Color>>(color: C) {
-    SKETCH.lock().unwrap().background = color.into().clone();
+    SKETCH.lock().unwrap().background = color.into();
     draw_background();
 }
 
@@ -94,12 +88,7 @@ pub fn get_fill() -> Color {
 }
 
 pub fn noFill() {
-    SKETCH.lock().unwrap().fill = Color {
-        r: 0.0,
-        g: 0.0,
-        b: 0.0,
-        a: 0.0,
-    };
+    SKETCH.lock().unwrap().fill = 0.0.into();
 }
 
 pub fn stroke<C: Into<Color>>(color: C) {
@@ -111,10 +100,5 @@ pub fn get_stroke() -> Color {
 }
 
 pub fn noStroke() {
-    SKETCH.lock().unwrap().stroke = Color {
-        r: 0.0,
-        g: 0.0,
-        b: 0.0,
-        a: 0.0,
-    };
+    SKETCH.lock().unwrap().stroke = 0.0.into();
 }
