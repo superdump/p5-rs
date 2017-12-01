@@ -29,13 +29,13 @@ extern crate game_time;
 extern crate gl;
 #[macro_use]
 extern crate lazy_static;
+extern crate nalgebra as na;
 
 mod channel;
 mod color;
 mod ellipse;
 mod glapp;
 mod line;
-mod matrix;
 mod point;
 mod rectangle;
 mod shader;
@@ -49,7 +49,6 @@ pub use color::*;
 pub use ellipse::*;
 pub use glapp::size;
 pub use line::*;
-pub use matrix::*;
 pub use point::*;
 pub use rectangle::*;
 pub use shader::*;
@@ -58,6 +57,8 @@ pub use sketch::*;
 pub use transformation::*;
 pub use triangle::*;
 pub use utils::*;
+
+pub use na::*;
 
 use game_time::*;
 
