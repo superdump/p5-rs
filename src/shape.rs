@@ -22,38 +22,37 @@
  * SOFTWARE.
  */
 
-use color::*;
+use color::Color;
 use glapp::*;
 
 use na::Point3;
 
 pub trait Shape {
-    fn points(&self) -> &Vec<Point3<f32>>;
-    fn uvs(&self) -> Vec<f32>;
-    fn indices(&self) -> Vec<u32>;
+    fn vertex_data(&self) -> &[f32];
+    fn index_data(&self) -> &[u32];
     fn vertex_shader(&self) -> Option<String>;
     fn fragment_shader(&self) -> Option<String>;
     fn draw(&self);
     fn is_stroke(&self) -> bool;
 }
 
-pub fn draw(shape: &Shape) {
-    let vertices = shape.points();
-    let uvs = shape.uvs();
-    let color;
-    if shape.is_stroke() {
-        color = get_stroke();
-    } else {
-        color = get_fill();
-    }
+pub fn assign_vertex(p: &Point3<f32>, uv: &[f32], c: &Color, vd: &mut [f32]) {
+    vd[0] = p.x;
+    vd[1] = p.y;
+    vd[2] = p.z;
+    vd[3] = uv[0];
+    vd[4] = uv[1];
+    vd[5] = c.x;
+    vd[6] = c.y;
+    vd[7] = c.z;
+    vd[8] = c.w;
+}
 
-    let indices = shape.indices();
-    let n_triangles = indices.len() - 2;
-    let total_vertices_before = append_vertices(&vertices, &uvs, &color);
-    append_indices(total_vertices_before, &indices);
-    let shader_program = get_shader_program(
-        shape.vertex_shader(),
-        shape.fragment_shader(),
-    );
+pub fn draw(shape: &Shape) {
+    let vertex_data = shape.vertex_data();
+    let index_data = shape.index_data();
+    let n_triangles = index_data.len() - 2;
+    let total_vertices_before = append_data(vertex_data, index_data);
+    let shader_program = get_shader_program(shape.vertex_shader(), shape.fragment_shader());
     append_shape(shader_program, n_triangles as u32);
 }

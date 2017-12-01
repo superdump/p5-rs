@@ -33,7 +33,7 @@ use shader::*;
 use self::glutin::GlContext;
 use gl;
 use gl::types::*;
-use na::{Matrix4, Point3, Transform3, Vector3};
+use na::{Matrix4, Transform3, Vector3};
 
 use std::cell::RefCell;
 use std::collections::HashMap;
@@ -396,31 +396,6 @@ impl GLApp {
     }
 }
 
-pub fn points_to_vertices(points: &Vec<Point3<f32>>) -> Vec<GLfloat> {
-    let mut vertices = Vec::with_capacity(points.len() * 3);
-    let width;
-    let height;
-    {
-        let sketch = SKETCH.lock().unwrap();
-        width = sketch.width as f32;
-        height = sketch.height as f32;
-    }
-    let transformation = Transform3::from_matrix_unchecked(
-        Matrix4::new_nonuniform_scaling(
-            &Vector3::new(
-                2.0 / width,
-                2.0 / height,
-                2.0 / height
-            )
-        )
-    );
-    for point in points {
-        let vertex = transformation * point;
-        vertices.extend_from_slice(vertex.coords.as_slice());
-    }
-    vertices
-}
-
 // vertices are stored as:
 // vertex, color
 // Khronos advise to use 4-byte alignment for vertex attributes
@@ -429,29 +404,13 @@ pub fn points_to_vertices(points: &Vec<Point3<f32>>) -> Vec<GLfloat> {
 // color is rgba as 4 GLfloat (16 bytes)
 // the stride is therefore 9 GLfloat (36 bytes)
 const VBO_STRIDE_N: usize = 9;
-pub fn append_vertices(points: &Vec<Point3<f32>>, uvs: &Vec<f32>, color: &Color) -> usize {
-    let vertex_data = points_to_vertices(points);
-    let count = vertex_data.len() / 3;
-    let mut vertices = VERTICES.lock().unwrap();
-    let total_vertices_before = vertices.len() / VBO_STRIDE_N;
-    vertices.reserve(count * VBO_STRIDE_N);
-    for i in 0..count {
-        let vd_offset = i * 3;
-        vertices.extend_from_slice(&vertex_data[vd_offset..vd_offset + 3]);
-        let uv_offset = i * 2;
-        vertices.extend_from_slice(&uvs[uv_offset..uv_offset + 2]);
-        vertices.extend_from_slice(color.as_slice());
+pub fn append_data(vertex_data: &[f32], index_data: &[u32]) {
+    let total_vertices_before;
+    {
+        let mut vertices = VERTICES.lock().unwrap();
+        total_vertices_before = vertices.len() / VBO_STRIDE_N;
+        vertices.extend_from_slice(vertex_data);
     }
-    total_vertices_before
-}
-
-fn drain_vertices() -> Vec<GLfloat> {
-    let mut vertices = VERTICES.lock().unwrap();
-    let drained = vertices.drain(..).collect();
-    drained
-}
-
-pub fn append_indices(offset: usize, index_data: &Vec<u32>) {
     let mut indices = INDICES.lock().unwrap();
     if indices.is_empty() {
         indices.reserve(index_data.len());
@@ -462,17 +421,25 @@ pub fn append_indices(offset: usize, index_data: &Vec<u32>) {
             repeated = (*last).clone();
         }
         indices.push(repeated);
-        indices.push(offset as u32 + index_data[0]);
+        indices.push(total_vertices_before as u32 + index_data[0]);
     }
     for index in index_data {
-        indices.push(offset as u32 + index);
+        indices.push(total_vertices_before as u32 + index);
     }
 }
 
-fn drain_indices() -> Vec<u32> {
-    let mut indices = INDICES.lock().unwrap();
-    let drained = indices.drain(..).collect();
-    drained
+fn drain_data() -> (Vec<GLfloat>, Vec<GLuint>) {
+    let vertex_data;
+    let index_data;
+    {
+        let mut vertices = VERTICES.lock().unwrap();
+        vertex_data = vertices.drain(..).collect();
+    }
+    {
+        let mut indices = INDICES.lock().unwrap();
+        index_data = indices.drain(..).collect();
+    }
+    (vertex_data, index_data)
 }
 
 pub fn append_shape(shader_program: GLuint, n_triangles: u32) {
@@ -493,20 +460,20 @@ fn drain_shapes() -> Vec<GLShape> {
     drained
 }
 
-fn drain() -> (Vec<GLfloat>, Vec<u32>, Vec<GLShape>) {
-    let tuple = (drain_vertices(), drain_indices(), drain_shapes());
+fn drain() -> ((Vec<GLfloat>, Vec<u32>), Vec<GLShape>) {
+    let tuple = (drain_data(), drain_shapes());
     *INDEX_BYTES_OFFSET.lock().unwrap() = 0;
     tuple
 }
 
 pub fn render() {
-    let (vertices, indices, _) = drain();
+    let ((vertex_data, index_data), _) = drain();
     channel::push(Box::new(move || {
         // prepare next frame and get objects for this frame
         let mut objects = (0, 0, 0, 0);
         GLAPP.with(|handle| {
             if let Some(ref mut glapp) = *handle.borrow_mut() {
-                glapp.upload_data(&vertices, &indices);
+                glapp.upload_data(&vertex_data, &index_data);
                 objects = glapp.get_current_objects();
             }
         });

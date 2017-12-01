@@ -22,25 +22,23 @@
  * SOFTWARE.
  */
 
+use color::*;
+use glapp;
 use shape;
-use shape::Shape;
+use shape::*;
 use transformation::getTransformations;
 use utils::*;
 
-use na::{Transform3, Point3};
+use na::{Point3, Transform3};
 
 pub fn triangle(p1: Point3<f32>, p2: Point3<f32>, p3: Point3<f32>) {
     let transformations = getTransformations();
-    Triangle::new(
-        p1,
-        p2,
-        p3,
-        transformations,
-    ).draw();
+    Triangle::new(p1, p2, p3, transformations).draw();
 }
 
 pub struct Triangle {
-    points: Vec<Point3<f32>>,
+    vertex_data: [f32; 9 * 3],
+    index_data: [u32; 3],
 }
 
 impl Triangle {
@@ -50,41 +48,43 @@ impl Triangle {
         p3: Point3<f32>,
         transformations: Transform3<f32>,
     ) -> Triangle {
+        let mut triangle = Triangle {
+            vertex_data: [0.0; 9 * 3],
+            index_data: [0, 1, 2],
+        };
+
         let points;
         if have_anticlockwise_winding(&p1, &p2, &p3) {
-            points = vec![
-                transformations * p1,
-                transformations * p2,
-                transformations * p3
-            ];
+            points = vec![p1, p2, p3];
         } else {
-            points = vec![
-                transformations * p2,
-                transformations * p1,
-                transformations * p3
-            ];
+            points = vec![p2, p1, p3];
         }
-        Triangle {
-            points,
+
+        let transform = glapp::get_transform() * transformations;
+        let color = get_fill();
+        let (l, t, r, b) = bounding_box(&points);
+        for i in 0..points.len() {
+            assign_vertex(
+                &(transform * points[i]),
+                &[
+                    map_f32(points[i].x, l, r, 0.0, 1.0),
+                    map_f32(points[i].y, b, t, 0.0, 1.0),
+                ],
+                &color,
+                &mut triangle.vertex_data[i * 9..],
+            );
         }
+
+        triangle
     }
 }
 
 impl Shape for Triangle {
-    fn points(&self) -> &Vec<Point3<f32>> {
-        &self.points
+    fn vertex_data(&self) -> &[f32] {
+        &self.vertex_data
     }
-    fn uvs(&self) -> Vec<f32> {
-        let (l, t, r, b) = bounding_box(&self.points);
-        let mut uvs = Vec::new();
-        for point in &self.points {
-            uvs.push(map_f32(point.x, l, r, 0.0, 1.0));
-            uvs.push(map_f32(point.y, b, t, 0.0, 1.0));
-        }
-        uvs
-    }
-    fn indices(&self) -> Vec<u32> {
-        vec![0, 1, 2]
+    fn index_data(&self) -> &[u32] {
+        &self.index_data
     }
     fn vertex_shader(&self) -> Option<String> {
         None

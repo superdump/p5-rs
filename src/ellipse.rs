@@ -22,12 +22,13 @@
  * SOFTWARE.
  */
 
+use color::*;
+use glapp;
 use shape;
-use shape::Shape;
+use shape::*;
 use transformation::getTransformations;
-use utils::*;
 
-use na::{Transform3, Point3, Vector3};
+use na::{Point3, Transform3, Translation, Vector3};
 
 use std::f32::consts::*;
 
@@ -46,8 +47,8 @@ pub fn ellipse(center: Point3<f32>, width: f32, height: f32) {
 }
 
 pub struct Ellipse {
-    points: Vec<Point3<f32>>,
-    indices: Vec<u32>,
+    vertex_data: [f32; 9 * N_SEGMENTS as usize],
+    index_data: [u32; 64],
     is_stroke: bool,
 }
 
@@ -60,28 +61,56 @@ impl Ellipse {
         is_stroke: bool,
         transformations: Transform3<f32>,
     ) -> Ellipse {
+        let mut ellipse = Ellipse {
+            vertex_data: [0.0; 9 * N_SEGMENTS as usize],
+            index_data: [0; N_SEGMENTS as usize],
+            is_stroke,
+        };
+
         let a = width * 0.5;
         let b = height * 0.5;
 
-        let offset_from_angle = |angle: f32| -> Vector3<f32> {
-            Vector3::new(
-                a * angle.sin(),
-                b * angle.cos(),
-                0.0,
-            )
-        };
+        let point_at_angle =
+            |angle: f32| -> Point3<f32> { Point3::new(a * angle.sin(), b * angle.cos(), 0.0) };
 
-        let mut points: Vec<Point3<f32>> = Vec::with_capacity(n_segments as usize);
-        points.push(transformations * (center + offset_from_angle(-0.5 * PI)));
-        let da = 2.0 * PI / (n_segments as f32);
-        for i in 1..n_segments / 2 {
-            let offset = offset_from_angle(-0.5 * PI + (i as f32) * da);
-            points.push(
-                transformations * (center + Vector3::new(offset.x, -offset.y, offset.z)),
-            );
-            points.push(transformations * (center + offset));
+        let color;
+        if is_stroke {
+            color = get_stroke();
+        } else {
+            color = get_fill();
         }
-        points.push(transformations * (center + offset_from_angle(0.5 * PI)));
+
+        let transform = glapp::get_transform() * transformations
+            * Translation::from_vector(center - Point3::origin());
+        assign_vertex(
+            &(transform * point_at_angle(-0.5 * PI)),
+            &[0.0, 0.5],
+            &color,
+            &mut ellipse.vertex_data,
+        );
+        let da = 2.0 * PI / (N_SEGMENTS as f32);
+        for i in 1..N_SEGMENTS / 2 {
+            let p = point_at_angle(-0.5 * PI + (i as f32) * da);
+            let index = (i as usize * 2 - 1) * 9;
+            assign_vertex(
+                &(transform * (p + Vector3::new(0.0, -2.0 * p.y, 0.0))),
+                &[p.x / a, -p.y / b],
+                &color,
+                &mut ellipse.vertex_data[index..],
+            );
+            assign_vertex(
+                &(transform * p),
+                &[p.x / a, p.y / b],
+                &color,
+                &mut ellipse.vertex_data[index + 9..],
+            );
+        }
+        assign_vertex(
+            &(transform * point_at_angle(0.5 * PI)),
+            &[1.0, 0.5],
+            &color,
+            &mut ellipse.vertex_data[(N_SEGMENTS as usize - 1) * 9..],
+        );
 
         /* e.g.
          * n_segments = 6
@@ -94,31 +123,20 @@ impl Ellipse {
          * 0,1,2,3,4,5 as a triangle strip
          */
 
-        let indices: Vec<u32> = (0..n_segments).collect();
-
-        Ellipse {
-            points,
-            indices,
-            is_stroke,
+        for i in 0..64 {
+            ellipse.index_data[i] = i as u32;
         }
+
+        ellipse
     }
 }
 
 impl Shape for Ellipse {
-    fn points(&self) -> &Vec<Point3<f32>> {
-        &self.points
+    fn vertex_data(&self) -> &[f32] {
+        &self.vertex_data
     }
-    fn uvs(&self) -> Vec<f32> {
-        let (l, t, r, b) = bounding_box(&self.points);
-        let mut uvs = Vec::new();
-        for point in &self.points {
-            uvs.push(map_f32(point.x, l, r, 0.0, 1.0));
-            uvs.push(map_f32(point.y, b, t, 0.0, 1.0));
-        }
-        uvs
-    }
-    fn indices(&self) -> Vec<u32> {
-        self.indices.clone()
+    fn index_data(&self) -> &[u32] {
+        &self.index_data
     }
     fn vertex_shader(&self) -> Option<String> {
         None

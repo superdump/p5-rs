@@ -22,37 +22,35 @@
  * SOFTWARE.
  */
 
+use color::*;
+use glapp;
 use shape;
-use shape::Shape;
+use shape::*;
 use sketch::get_stroke_weight;
 use transformation::getTransformations;
 
-use na::{Transform3, Point3, Rotation3, Vector3};
+use na::{Point3, Rotation3, Transform3, Vector3};
 
 use std::f32;
 
 pub fn rect(top_left: Point3<f32>, bottom_right: Point3<f32>) {
     let transformations = getTransformations();
-    Rectangle::new(
-        top_left,
-        bottom_right,
-        false,
-        false,
-        transformations,
-    ).draw();
+    Rectangle::new(top_left, bottom_right, false, false, transformations).draw();
 }
 
 pub struct Rectangle {
-    points: Vec<Point3<f32>>,
+    vertex_data: [f32; 9 * 4],
+    index_data: [u32; 4],
     is_stroke: bool,
 }
 
-pub fn get_rect_points(
+pub fn get_rect_vertex_data(
     top_left: Point3<f32>,
     bottom_right: Point3<f32>,
     is_line: bool,
     transformations: Transform3<f32>,
-) -> Vec<Point3<f32>> {
+    vertex_data: &mut [f32],
+) {
     let mut top_left = top_left;
     let mut bottom_right = bottom_right;
     let top_right;
@@ -61,35 +59,53 @@ pub fn get_rect_points(
         // FIXME: Only works in 2D - need z = 0 to define a plane with the two points
         let width = get_stroke_weight();
         let line = (bottom_right - top_left).normalize() * (width as f32 * 0.5).ceil();
-        let anticlockwise = Rotation3::from_axis_angle(&Vector3::z_axis(), f32::consts::FRAC_PI_2) * line;
-        let clockwise = Rotation3::from_axis_angle(&Vector3::z_axis(), -f32::consts::FRAC_PI_2) * line;
+        let anticlockwise =
+            Rotation3::from_axis_angle(&Vector3::z_axis(), f32::consts::FRAC_PI_2) * line;
+        let clockwise =
+            Rotation3::from_axis_angle(&Vector3::z_axis(), -f32::consts::FRAC_PI_2) * line;
 
         bottom_left = top_left + clockwise;
         top_right = bottom_right + anticlockwise;
         top_left = top_left + anticlockwise;
         bottom_right = bottom_right + clockwise;
     } else {
-        bottom_left = Point3::new(
-            top_left.x,
-            bottom_right.y,
-            bottom_right.z,
-        );
-        top_right = Point3::new(
-            bottom_right.x,
-            top_left.y,
-            top_left.z,
-        );
+        bottom_left = Point3::new(top_left.x, bottom_right.y, bottom_right.z);
+        top_right = Point3::new(bottom_right.x, top_left.y, top_left.z);
     }
-    vec![
-        transformations * top_left,
-        transformations * bottom_left,
-        transformations * top_right,
-        transformations * bottom_right,
-    ]
-}
 
-pub fn get_rect_uvs() -> Vec<f32> {
-    vec![0.0, 1.0, 0.0, 0.0, 1.0, 1.0, 1.0, 0.0]
+    let color;
+    if is_line {
+        color = get_stroke();
+    } else {
+        color = get_fill();
+    }
+
+    let transform = glapp::get_transform() * transformations;
+
+    assign_vertex(
+        &(transform * top_left),
+        &[0.0, 1.0],
+        &color,
+        &mut vertex_data[0 * 9..],
+    );
+    assign_vertex(
+        &(transform * bottom_left),
+        &[0.0, 0.0],
+        &color,
+        &mut vertex_data[1 * 9..],
+    );
+    assign_vertex(
+        &(transform * top_right),
+        &[1.0, 1.0],
+        &color,
+        &mut vertex_data[2 * 9..],
+    );
+    assign_vertex(
+        &(transform * bottom_right),
+        &[1.0, 0.0],
+        &color,
+        &mut vertex_data[3 * 9..],
+    );
 }
 
 impl Rectangle {
@@ -100,28 +116,28 @@ impl Rectangle {
         is_line: bool,
         transformations: Transform3<f32>,
     ) -> Rectangle {
-        let points = get_rect_points(
+        let mut rectangle = Rectangle {
+            vertex_data: [0.0; 9 * 4],
+            index_data: [0, 1, 2, 3],
+            is_stroke,
+        };
+        get_rect_vertex_data(
             top_left,
             bottom_right,
             is_line,
             transformations,
+            &mut rectangle.vertex_data,
         );
-        Rectangle {
-            points,
-            is_stroke,
-        }
+        rectangle
     }
 }
 
 impl Shape for Rectangle {
-    fn points(&self) -> &Vec<Point3<f32>> {
-        &self.points
+    fn vertex_data(&self) -> &[f32] {
+        &self.vertex_data
     }
-    fn uvs(&self) -> Vec<f32> {
-        get_rect_uvs()
-    }
-    fn indices(&self) -> Vec<u32> {
-        vec![0, 1, 2, 3]
+    fn index_data(&self) -> &[u32] {
+        &self.index_data
     }
     fn vertex_shader(&self) -> Option<String> {
         None
