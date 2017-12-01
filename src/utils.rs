@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-use point::Point;
+use na::Point3;
 
 use std::f32;
 
@@ -38,7 +38,7 @@ pub fn map_f64(iv: f64, il: f64, iu: f64, ol: f64, ou: f64) -> f64 {
     ol + (ou - ol) * (iv - il) / (iu - il)
 }
 
-pub fn have_anticlockwise_winding(p1: Point, p2: Point, p3: Point) -> bool {
+pub fn have_anticlockwise_winding(p1: &Point3<f32>, p2: &Point3<f32>, p3: &Point3<f32>) -> bool {
     let a = p1 - p2;
     let b = p3 - p2;
     // atan2 gives the anti-clockwise rotation about the z-axis from the x-axis
@@ -51,7 +51,7 @@ pub fn have_anticlockwise_winding(p1: Point, p2: Point, p3: Point) -> bool {
 }
 
 // returns left, top, right, bottom
-pub fn bounding_box(points: &Vec<Point>) -> (f32, f32, f32, f32) {
+pub fn bounding_box(points: &Vec<Point3<f32>>) -> (f32, f32, f32, f32) {
     let mut left = f32::MAX;
     let mut bottom = f32::MAX;
     let mut right = f32::MIN;
