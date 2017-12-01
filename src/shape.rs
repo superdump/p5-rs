@@ -24,10 +24,11 @@
 
 use color::*;
 use glapp::*;
-use point::*;
+
+use na::Point3;
 
 pub trait Shape {
-    fn points(&self) -> Vec<Point>;
+    fn points(&self) -> &Vec<Point3<f32>>;
     fn uvs(&self) -> Vec<f32>;
     fn indices(&self) -> Vec<u32>;
     fn vertex_shader(&self) -> String;
@@ -49,7 +50,7 @@ pub fn draw(shape: &Shape) {
     let indices = shape.indices();
     let n_triangles = indices.len() - 2;
     let total_vertices_before = append_vertices(&vertices, &uvs, &color);
-    append_indices(total_vertices_before, indices);
+    append_indices(total_vertices_before, &indices);
     let shader_program = get_shader_program(
         shape.vertex_shader(),
         shape.fragment_shader(),
