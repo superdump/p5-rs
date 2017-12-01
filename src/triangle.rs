@@ -22,40 +22,47 @@
  * SOFTWARE.
  */
 
-use matrix::Matrix;
-use point::*;
 use shape;
 use shape::Shape;
 use transformation::getTransformations;
 use utils::*;
 
-pub fn triangle<P: Into<Point>>(p1: P, p2: P, p3: P) {
+use na::{Transform3, Point3};
+
+pub fn triangle(p1: Point3<f32>, p2: Point3<f32>, p3: Point3<f32>) {
     let transformations = getTransformations();
     Triangle::new(
-        p1.into(),
-        p2.into(),
-        p3.into(),
+        p1,
+        p2,
+        p3,
         transformations,
     ).draw();
 }
 
 pub struct Triangle {
-    points: Vec<Point>,
+    points: Vec<Point3<f32>>,
 }
 
 impl Triangle {
     pub fn new(
-        p1: Point,
-        p2: Point,
-        p3: Point,
-        transformations: Matrix,
+        p1: Point3<f32>,
+        p2: Point3<f32>,
+        p3: Point3<f32>,
+        transformations: Transform3<f32>,
     ) -> Triangle {
-        let mut points = vec![p1, p2, p3];
-        if !have_anticlockwise_winding(p1, p2, p3) {
-            points.swap(0, 1);
-        }
-        for ref mut point in &mut points {
-            transformations.transform(point);
+        let points;
+        if have_anticlockwise_winding(&p1, &p2, &p3) {
+            points = vec![
+                transformations * p1,
+                transformations * p2,
+                transformations * p3
+            ];
+        } else {
+            points = vec![
+                transformations * p2,
+                transformations * p1,
+                transformations * p3
+            ];
         }
         Triangle {
             points,
@@ -64,8 +71,8 @@ impl Triangle {
 }
 
 impl Shape for Triangle {
-    fn points(&self) -> Vec<Point> {
-        self.points.clone()
+    fn points(&self) -> &Vec<Point3<f32>> {
+        &self.points
     }
     fn uvs(&self) -> Vec<f32> {
         let (l, t, r, b) = bounding_box(&self.points);

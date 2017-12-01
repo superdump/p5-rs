@@ -22,19 +22,19 @@
  * SOFTWARE.
  */
 
-use point::{point, Point};
+use point::*;
 use rectangle::Rectangle;
 use shape::Shape;
 use sketch::get_stroke_weight;
 use transformation::getTransformations;
 
-pub fn line<P: Into<Point>>(start: P, end: P) {
-    let s = start.into();
-    let e = end.into();
+use na::Point3;
+
+pub fn line(start: Point3<f32>, end: Point3<f32>) {
     let transformations = getTransformations();
     Rectangle::new(
-        s.clone(),
-        e.clone(),
+        start.clone(),
+        end.clone(),
         true,
         true,
         transformations,
@@ -42,7 +42,7 @@ pub fn line<P: Into<Point>>(start: P, end: P) {
     // Note: this is a small optimization for small stroke weights to not draw points
     let width = get_stroke_weight();
     if width > 4 {
-        point(s);
-        point(e);
+        point(start);
+        point(end);
     }
 }

@@ -22,18 +22,18 @@
  * SOFTWARE.
  */
 
-use matrix::Matrix;
-use point::*;
 use shape;
 use shape::Shape;
 use transformation::getTransformations;
 use utils::*;
 
+use na::{Transform3, Point3, Vector3};
+
 use std::f32::consts::*;
 
 const N_SEGMENTS: u32 = 64;
 
-pub fn ellipse<P: Into<Point>>(center: P, width: f32, height: f32) {
+pub fn ellipse(center: Point3<f32>, width: f32, height: f32) {
     let transformations = getTransformations();
     Ellipse::new(
         center.into(),
@@ -46,50 +46,42 @@ pub fn ellipse<P: Into<Point>>(center: P, width: f32, height: f32) {
 }
 
 pub struct Ellipse {
-    points: Vec<Point>,
+    points: Vec<Point3<f32>>,
     indices: Vec<u32>,
     is_stroke: bool,
 }
 
 impl Ellipse {
     pub fn new(
-        center: Point,
+        center: Point3<f32>,
         width: f32,
         height: f32,
         n_segments: u32,
         is_stroke: bool,
-        transformations: Matrix,
+        transformations: Transform3<f32>,
     ) -> Ellipse {
         let a = width * 0.5;
         let b = height * 0.5;
 
-        let point_from_angle = |angle: f32| -> Point {
-            Point {
-                x: a * angle.sin(),
-                y: b * angle.cos(),
-                z: 0.0,
-            }
+        let offset_from_angle = |angle: f32| -> Vector3<f32> {
+            Vector3::new(
+                a * angle.sin(),
+                b * angle.cos(),
+                0.0,
+            )
         };
 
-        let mut points: Vec<Point> = Vec::new();
-        points.push(center + point_from_angle(-0.5 * PI));
+        let mut points: Vec<Point3<f32>> = Vec::with_capacity(n_segments as usize);
+        points.push(transformations * (center + offset_from_angle(-0.5 * PI)));
         let da = 2.0 * PI / (n_segments as f32);
         for i in 1..n_segments / 2 {
-            let p = point_from_angle(-0.5 * PI + (i as f32) * da);
+            let offset = offset_from_angle(-0.5 * PI + (i as f32) * da);
             points.push(
-                center + Point {
-                    x: p.x,
-                    y: -p.y,
-                    z: p.z,
-                },
+                transformations * (center + Vector3::new(offset.x, -offset.y, offset.z)),
             );
-            points.push(center + p);
+            points.push(transformations * (center + offset));
         }
-        points.push(center + point_from_angle(0.5 * PI));
-
-        for ref mut point in &mut points {
-            transformations.transform(point);
-        }
+        points.push(transformations * (center + offset_from_angle(0.5 * PI)));
 
         /* e.g.
          * n_segments = 6
@@ -113,8 +105,8 @@ impl Ellipse {
 }
 
 impl Shape for Ellipse {
-    fn points(&self) -> Vec<Point> {
-        self.points.clone()
+    fn points(&self) -> &Vec<Point3<f32>> {
+        &self.points
     }
     fn uvs(&self) -> Vec<f32> {
         let (l, t, r, b) = bounding_box(&self.points);

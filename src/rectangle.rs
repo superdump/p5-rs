@@ -22,18 +22,20 @@
  * SOFTWARE.
  */
 
-use matrix::Matrix;
-use point::*;
 use shape;
 use shape::Shape;
 use sketch::get_stroke_weight;
 use transformation::getTransformations;
 
-pub fn rect<P: Into<Point>>(top_left: P, bottom_right: P) {
+use na::{Transform3, Point3, Rotation3, Vector3};
+
+use std::f32;
+
+pub fn rect(top_left: Point3<f32>, bottom_right: Point3<f32>) {
     let transformations = getTransformations();
     Rectangle::new(
-        top_left.into(),
-        bottom_right.into(),
+        top_left,
+        bottom_right,
         false,
         false,
         transformations,
@@ -41,16 +43,16 @@ pub fn rect<P: Into<Point>>(top_left: P, bottom_right: P) {
 }
 
 pub struct Rectangle {
-    points: Vec<Point>,
+    points: Vec<Point3<f32>>,
     is_stroke: bool,
 }
 
 pub fn get_rect_points(
-    top_left: Point,
-    bottom_right: Point,
+    top_left: Point3<f32>,
+    bottom_right: Point3<f32>,
     is_line: bool,
-    transformations: Matrix,
-) -> Vec<Point> {
+    transformations: Transform3<f32>,
+) -> Vec<Point3<f32>> {
     let mut top_left = top_left;
     let mut bottom_right = bottom_right;
     let top_right;
@@ -58,40 +60,32 @@ pub fn get_rect_points(
     if is_line {
         // FIXME: Only works in 2D - need z = 0 to define a plane with the two points
         let width = get_stroke_weight();
-        let half_width = (width as f32 * 0.5).ceil();
-        let mut anticlockwise: Point = (
-            -(bottom_right.y - top_left.y),
-            bottom_right.x - top_left.x,
-            0.0,
-        ).into();
-        anticlockwise.setMag(half_width);
-        let mut clockwise: Point = (
-            bottom_right.y - top_left.y,
-            -(bottom_right.x - top_left.x),
-            0.0,
-        ).into();
-        clockwise.setMag(half_width);
+        let line = (bottom_right - top_left).normalize() * (width as f32 * 0.5).ceil();
+        let anticlockwise = Rotation3::from_axis_angle(&Vector3::z_axis(), f32::consts::FRAC_PI_2) * line;
+        let clockwise = Rotation3::from_axis_angle(&Vector3::z_axis(), -f32::consts::FRAC_PI_2) * line;
+
         bottom_left = top_left + clockwise;
         top_right = bottom_right + anticlockwise;
         top_left = top_left + anticlockwise;
         bottom_right = bottom_right + clockwise;
     } else {
-        bottom_left = Point {
-            x: top_left.x,
-            y: bottom_right.y,
-            z: bottom_right.z,
-        };
-        top_right = Point {
-            x: bottom_right.x,
-            y: top_left.y,
-            z: top_left.z,
-        };
+        bottom_left = Point3::new(
+            top_left.x,
+            bottom_right.y,
+            bottom_right.z,
+        );
+        top_right = Point3::new(
+            bottom_right.x,
+            top_left.y,
+            top_left.z,
+        );
     }
-    let mut points = vec![top_left, bottom_left, top_right, bottom_right];
-    for ref mut point in &mut points {
-        transformations.transform(point);
-    }
-    points
+    vec![
+        transformations * top_left,
+        transformations * bottom_left,
+        transformations * top_right,
+        transformations * bottom_right,
+    ]
 }
 
 pub fn get_rect_uvs() -> Vec<f32> {
@@ -100,11 +94,11 @@ pub fn get_rect_uvs() -> Vec<f32> {
 
 impl Rectangle {
     pub fn new(
-        top_left: Point,
-        bottom_right: Point,
+        top_left: Point3<f32>,
+        bottom_right: Point3<f32>,
         is_stroke: bool,
         is_line: bool,
-        transformations: Matrix,
+        transformations: Transform3<f32>,
     ) -> Rectangle {
         let points = get_rect_points(
             top_left,
@@ -120,8 +114,8 @@ impl Rectangle {
 }
 
 impl Shape for Rectangle {
-    fn points(&self) -> Vec<Point> {
-        self.points.clone()
+    fn points(&self) -> &Vec<Point3<f32>> {
+        &self.points
     }
     fn uvs(&self) -> Vec<f32> {
         get_rect_uvs()
