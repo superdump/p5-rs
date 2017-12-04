@@ -26,19 +26,11 @@ use point::*;
 use rectangle::Rectangle;
 use shape::Shape;
 use sketch::get_stroke_weight;
-use transformation::getTransformations;
 
 use na::Point3;
 
 pub fn line(start: Point3<f32>, end: Point3<f32>) {
-    let transformations = getTransformations();
-    Rectangle::new(
-        start.clone(),
-        end.clone(),
-        true,
-        true,
-        transformations,
-    ).draw();
+    Rectangle::new(start.clone(), end.clone(), true, true).draw();
     // Note: this is a small optimization for small stroke weights to not draw points
     let width = get_stroke_weight();
     if width > 4 {

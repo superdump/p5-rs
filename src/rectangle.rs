@@ -22,20 +22,17 @@
  * SOFTWARE.
  */
 
-use color::*;
-use glapp;
 use shape;
 use shape::*;
-use sketch::get_stroke_weight;
+use sketch;
 use transformation::getTransformations;
 
-use na::{Point3, Rotation3, Transform3, Vector3};
+use na::{Point3, Rotation3, Vector3};
 
 use std::f32;
 
 pub fn rect(top_left: Point3<f32>, bottom_right: Point3<f32>) {
-    let transformations = getTransformations();
-    Rectangle::new(top_left, bottom_right, false, false, transformations).draw();
+    Rectangle::new(top_left, bottom_right, false, false).draw();
 }
 
 pub struct Rectangle {
@@ -48,16 +45,18 @@ pub fn get_rect_vertex_data(
     top_left: Point3<f32>,
     bottom_right: Point3<f32>,
     is_line: bool,
-    transformations: Transform3<f32>,
     vertex_data: &mut [f32],
 ) {
     let mut top_left = top_left;
     let mut bottom_right = bottom_right;
     let top_right;
     let bottom_left;
+    let uvs: [f32; 8] = [0.0, 1.0, 0.0, 0.0, 1.0, 1.0, 1.0, 0.0];
+
+    let sketch = sketch::get_sketch();
     if is_line {
         // FIXME: Only works in 2D - need z = 0 to define a plane with the two points
-        let width = get_stroke_weight();
+        let width = sketch.width;
         let line = (bottom_right - top_left).normalize() * (width as f32 * 0.5).ceil();
         let anticlockwise =
             Rotation3::from_axis_angle(&Vector3::z_axis(), f32::consts::FRAC_PI_2) * line;
@@ -75,37 +74,28 @@ pub fn get_rect_vertex_data(
 
     let color;
     if is_line {
-        color = get_stroke();
+        color = &sketch.stroke;
     } else {
-        color = get_fill();
+        color = &sketch.fill;
     }
 
-    let transform = glapp::get_transform() * transformations;
+    let mut transform = sketch.transformation;
+    {
+        let transformations = getTransformations();
+        if let Some(transformation) = transformations.last() {
+            transform *= transformation;
+        }
+    }
 
-    assign_vertex(
-        &(transform * top_left),
-        &[0.0, 1.0],
-        &color,
-        &mut vertex_data[0 * 9..],
-    );
-    assign_vertex(
-        &(transform * bottom_left),
-        &[0.0, 0.0],
-        &color,
-        &mut vertex_data[1 * 9..],
-    );
-    assign_vertex(
-        &(transform * top_right),
-        &[1.0, 1.0],
-        &color,
-        &mut vertex_data[2 * 9..],
-    );
-    assign_vertex(
-        &(transform * bottom_right),
-        &[1.0, 0.0],
-        &color,
-        &mut vertex_data[3 * 9..],
-    );
+    let points = [top_left, bottom_left, top_right, bottom_right];
+    for i in 0..points.len() {
+        assign_vertex(
+            &(transform * points[i]),
+            &uvs[i * 2..],
+            color,
+            &mut vertex_data[i * 9..],
+        );
+    }
 }
 
 impl Rectangle {
@@ -114,20 +104,13 @@ impl Rectangle {
         bottom_right: Point3<f32>,
         is_stroke: bool,
         is_line: bool,
-        transformations: Transform3<f32>,
     ) -> Rectangle {
         let mut rectangle = Rectangle {
             vertex_data: [0.0; 9 * 4],
             index_data: [0, 1, 2, 3],
             is_stroke,
         };
-        get_rect_vertex_data(
-            top_left,
-            bottom_right,
-            is_line,
-            transformations,
-            &mut rectangle.vertex_data,
-        );
+        get_rect_vertex_data(top_left, bottom_right, is_line, &mut rectangle.vertex_data);
         rectangle
     }
 }
