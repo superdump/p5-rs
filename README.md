@@ -1,6 +1,6 @@
 # p5-rs - Processing / p5 for Rust
 
-This is an attempt by an OpenGL / Rust newbie ([Robert Swain](https://github.com/superdump)) to develop a library heading somewhat toward the same kind of functionality and API as Processing / p5 but for Rust. I'm doing this mostly for my education, but in the remote possibility that someone finds this useful, here it is.
+This is an attempt by an OpenGL / Rust newbie ([Robert Swain](https://github.com/superdump) 2017-11) to develop a library heading somewhat toward the same kind of functionality and API as Processing / p5 but for Rust. I'm doing this mostly for my education.
 
 ## Usage
 
@@ -27,12 +27,6 @@ fn main() {
 ```
 
 As usual with Processing / p5, write code in and around the `setup()` and `draw()` functions to draw fun things.
-
-## Status
-
-This is in early stage development. I'm working on it when I feel like it, so don't depend on me nor this yet. :grin: I'm not really looking for pull requests yet as I am trying to learn. Feel free to file issues and maybe when things are a bit further along, I'll edit away this message (date of writing comment: 2017-11-20.) See the TODO.md for details about where I'm at.
-
-If you're looking for a maintained library/framework with this functionality, perhaps do some web searching or take a look at https://github.com/rennis250/processing-rs which is the only such library of which I am currently aware.
 
 ## Design
 
