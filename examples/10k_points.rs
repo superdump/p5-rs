@@ -41,7 +41,7 @@ fn setup() {
     size(WIDTH, HEIGHT);
     background(0.2);
 
-    let between = Range::new(-((WIDTH/2) as f32), (WIDTH/2) as f32);
+    let between = Range::new(-((WIDTH / 2) as f32), (WIDTH / 2) as f32);
     let mut rng = rand::thread_rng();
     let mut ps: Vec<Point3<f32>> = Vec::with_capacity(N_OBJECTS);
     for _ in 0..N_OBJECTS {
