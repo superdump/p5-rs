@@ -26,95 +26,71 @@ extern crate p5;
 
 use p5::*;
 
-static mut t: f32 = 0.0;
+static mut T: f32 = 0.0;
 
 fn setup() {
     size(400, 400);
     background(0.2);
 }
 
-const radius: f32 = 100.0;
+const RADIUS: f32 = 100.0;
 fn draw() {
-    let radius_offset: Vector3<f32> = Vector3::new(radius, 0.0, 0.0);
+    let radius_offset: Vector3<f32> = Vector3::new(RADIUS, 0.0, 0.0);
 
-    let p1: Point3<f32> = Point3::new(
-        -50.0,
-        -50.0,
-        0.0,
-    );
-    let p2: Point3<f32> = Point3::new(
-        0.0,
-        43.0,
-        0.0,
-    );
-    let p3: Point3<f32> = Point3::new(
-        50.0,
-        -50.0,
-        0.0,
-    );
-    let tl: Point3<f32> = Point3::new(
-        -50.0,
-        50.0,
-        0.0,
-    );
-    let br: Point3<f32> = Point3::new(
-        50.0,
-        -50.0,
-        0.0,
-    );
+    let p1: Point3<f32> = Point3::new(-50.0, -50.0, 0.0);
+    let p2: Point3<f32> = Point3::new(0.0, 43.0, 0.0);
+    let p3: Point3<f32> = Point3::new(50.0, -50.0, 0.0);
+    let tl: Point3<f32> = Point3::new(-50.0, 50.0, 0.0);
+    let br: Point3<f32> = Point3::new(50.0, -50.0, 0.0);
 
     fill((1.0, 0.0, 0.0));
-    pushMatrix();
+    push_matrix();
     translate(&radius_offset);
     unsafe {
-        rotate(t);
+        rotate(T);
     }
     triangle(p1, p2, p3);
-    popMatrix();
+    pop_matrix();
 
     fill((0.0, 1.0, 0.0));
-    pushMatrix();
+    push_matrix();
     let sin;
     let cos;
     unsafe {
-        sin = (t + std::f32::consts::FRAC_PI_2).sin();
-        cos = (t + std::f32::consts::FRAC_PI_2).sin();
+        sin = (T + std::f32::consts::FRAC_PI_2).sin();
+        cos = (T + std::f32::consts::FRAC_PI_2).sin();
     }
-    translate(&Vector3::new(
-        radius * sin,
-        radius * cos,
-        0.0,
-    ));
+    translate(&Vector3::new(RADIUS * sin, RADIUS * cos, 0.0));
     ellipse(Point3::origin(), 200.0, 100.0);
-    popMatrix();
+    pop_matrix();
 
     fill((0.0, 0.0, 1.0));
-    pushMatrix();
+    push_matrix();
     translate(&radius_offset);
     unsafe {
-        rotate(t + std::f32::consts::PI);
+        rotate(T + std::f32::consts::PI);
     }
     rect(tl, br);
-    popMatrix();
+    pop_matrix();
 
-    strokeWeight(10);
+    stroke_weight(10);
     stroke((1.0, 1.0, 0.0));
 
-    pushMatrix();
+    push_matrix();
     unsafe {
-        rotate(0.5 * t);
+        rotate(0.5 * T);
     }
     line(
-        Point3::new(-0.75 * radius, 0.0, 0.0),
-        Point3::new(0.75 * radius, 0.0, 0.0)
+        Point3::new(-0.75 * RADIUS, 0.0, 0.0),
+        Point3::new(0.75 * RADIUS, 0.0, 0.0),
     );
-    popMatrix();
+    pop_matrix();
 
     stroke((0.0, 1.0, 1.0));
     point(Point3::origin());
 
     unsafe {
-        t += 0.03;
+        T += 0.03;
     }
 }
 

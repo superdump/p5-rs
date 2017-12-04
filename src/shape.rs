@@ -52,7 +52,7 @@ pub fn draw(shape: &Shape) {
     let vertex_data = shape.vertex_data();
     let index_data = shape.index_data();
     let n_triangles = index_data.len() - 2;
-    let total_vertices_before = append_data(vertex_data, index_data);
+    append_data(vertex_data, index_data);
     let shader_program = get_shader_program(shape.vertex_shader(), shape.fragment_shader());
     append_shape(shader_program, n_triangles as u32);
 }

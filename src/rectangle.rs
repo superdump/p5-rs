@@ -25,7 +25,7 @@
 use shape;
 use shape::*;
 use sketch;
-use transformation::getTransformations;
+use transformation::get_transformations;
 
 use na::{Point3, Rotation3, Vector3};
 
@@ -81,7 +81,7 @@ pub fn get_rect_vertex_data(
 
     let mut transform = sketch.transformation;
     {
-        let transformations = getTransformations();
+        let transformations = get_transformations();
         if let Some(transformation) = transformations.last() {
             transform *= transformation;
         }

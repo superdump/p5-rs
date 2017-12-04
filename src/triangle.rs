@@ -25,7 +25,7 @@
 use shape;
 use shape::*;
 use sketch;
-use transformation::getTransformations;
+use transformation::get_transformations;
 use utils::*;
 
 use na::Point3;
@@ -63,7 +63,7 @@ impl Triangle {
         let sketch = sketch::get_sketch();
         let mut transform = sketch.transformation;
         {
-            let transformations = getTransformations();
+            let transformations = get_transformations();
             if let Some(transformation) = transformations.last() {
                 transform *= transformation;
             }

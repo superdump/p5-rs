@@ -36,11 +36,11 @@ pub fn reset() {
     transformation_stack.push(Transform3::identity());
 }
 
-pub fn getTransformations<'a>() -> MutexGuard<'a, Vec<Transform3<f32>>> {
+pub fn get_transformations<'a>() -> MutexGuard<'a, Vec<Transform3<f32>>> {
     TRANSFORMATION_STACK.lock().unwrap()
 }
 
-pub fn pushMatrix() {
+pub fn push_matrix() {
     let mut transformation_stack = TRANSFORMATION_STACK.lock().unwrap();
     let clone;
     if let Some(top) = transformation_stack.last() {
@@ -51,7 +51,7 @@ pub fn pushMatrix() {
     transformation_stack.push(clone);
 }
 
-pub fn popMatrix() {
+pub fn pop_matrix() {
     TRANSFORMATION_STACK.lock().unwrap().pop();
 }
 
@@ -62,22 +62,22 @@ pub fn translate(translation: &Vector3<f32>) {
 }
 
 pub fn rotate(angle: f32) {
-    rotateZ(angle);
+    rotate_z(angle);
 }
 
-pub fn rotateX(angle: f32) {
+pub fn rotate_x(angle: f32) {
     if let Some(transformation) = TRANSFORMATION_STACK.lock().unwrap().last_mut() {
         *transformation = Rotation3::from_scaled_axis(&Vector3::x() * angle) * *transformation;
     }
 }
 
-pub fn rotateY(angle: f32) {
+pub fn rotate_y(angle: f32) {
     if let Some(transformation) = TRANSFORMATION_STACK.lock().unwrap().last_mut() {
         *transformation = Rotation3::from_scaled_axis(&Vector3::y() * angle) * *transformation;
     }
 }
 
-pub fn rotateZ(angle: f32) {
+pub fn rotate_z(angle: f32) {
     if let Some(transformation) = TRANSFORMATION_STACK.lock().unwrap().last_mut() {
         *transformation = Rotation3::from_scaled_axis(&Vector3::z() * angle) * *transformation;
     }

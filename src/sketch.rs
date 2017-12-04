@@ -61,14 +61,10 @@ pub fn get_sketch<'a>() -> MutexGuard<'a, Sketch> {
     SKETCH.lock().unwrap()
 }
 
-pub fn strokeWeight(w: u32) {
+pub fn stroke_weight(w: u32) {
     SKETCH.lock().unwrap().stroke_weight = w;
 }
 
 pub fn get_stroke_weight() -> u32 {
     SKETCH.lock().unwrap().stroke_weight
-}
-
-pub fn noStroke() {
-    SKETCH.lock().unwrap().stroke_weight = 0;
 }

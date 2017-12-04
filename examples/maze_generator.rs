@@ -85,16 +85,28 @@ impl Index {
         index(self.i, self.j)
     }
     fn up(&self) -> Index {
-        Index { i: self.i, j: self.j - 1 }
+        Index {
+            i: self.i,
+            j: self.j - 1,
+        }
     }
     fn right(&self) -> Index {
-        Index { i: self.i + 1, j: self.j }
+        Index {
+            i: self.i + 1,
+            j: self.j,
+        }
     }
     fn down(&self) -> Index {
-        Index { i: self.i, j: self.j + 1 }
+        Index {
+            i: self.i,
+            j: self.j + 1,
+        }
     }
     fn left(&self) -> Index {
-        Index { i: self.i - 1, j: self.j }
+        Index {
+            i: self.i - 1,
+            j: self.j,
+        }
     }
 }
 
@@ -136,7 +148,7 @@ impl Grid {
                 } else if !self.visited.is_empty() && self.visited[index] {
                     fill((0.0, 0.0, 1.0, 0.7));
                 } else {
-                    noFill();
+                    no_fill();
                 }
                 self.grid[index].show();
                 index += 1;
@@ -146,7 +158,7 @@ impl Grid {
     fn maze_gen_start(&mut self, i: i32, j: i32) {
         if out_of_bounds(i, j, self.cols, self.rows) {
             println!("Cannot start maze generation at ({},{})", i, j);
-            return
+            return;
         }
         self.visited = vec![false; (self.cols * self.rows) as usize];
         self.stack = Vec::new();
@@ -156,7 +168,7 @@ impl Grid {
     }
     fn maze_gen_step(&mut self) {
         if !self.generating {
-            return
+            return;
         }
         let neighbors = self.get_neighbors(self.current);
         if neighbors.is_empty() {
@@ -165,11 +177,11 @@ impl Grid {
                 self.current = Index::new(-1, -1);
                 println!("Maze generated");
                 self.generating = false;
-                return
+                return;
             }
             if let Some(current) = self.stack.pop() {
                 self.current = current;
-                return
+                return;
             }
         }
         if let Some(next) = rand::thread_rng().choose(&neighbors) {
@@ -204,7 +216,7 @@ impl Grid {
     }
     fn break_walls(&mut self, prev: Index, curr: Index) {
         if out_of_bounds(prev.i, prev.j, self.cols, self.rows) {
-            return
+            return;
         }
         if prev.j == curr.j {
             if prev.i < curr.i {
@@ -223,17 +235,15 @@ impl Grid {
                 self.grid[curr.index()].break_wall(Direction::Down);
             }
         }
-
     }
 }
 
 const WIDTH: i32 = 800;
 const HEIGHT: i32 = WIDTH;
-const CELL_WIDTH: i32 = WIDTH/40;
+const CELL_WIDTH: i32 = WIDTH / 40;
 const CELL_HEIGHT: i32 = CELL_WIDTH;
 const COLS: i32 = WIDTH / CELL_WIDTH;
 const ROWS: i32 = COLS;
-const N_CELLS: usize = COLS as usize * ROWS as usize;
 
 static mut GRID: Option<Grid> = None;
 
@@ -243,8 +253,8 @@ fn index(i: i32, j: i32) -> usize {
 
 fn cell_to_point(i: i32, j: i32) -> Point3<f32> {
     Point3::new(
-        (-WIDTH/2 + i * CELL_WIDTH) as f32,
-        (HEIGHT/2 - j * CELL_HEIGHT) as f32,
+        (-WIDTH / 2 + i * CELL_WIDTH) as f32,
+        (HEIGHT / 2 - j * CELL_HEIGHT) as f32,
         0.0,
     )
 }
@@ -261,7 +271,7 @@ fn setup() {
 }
 
 fn draw() {
-    strokeWeight(1);
+    stroke_weight(1);
     stroke(1.0);
     unsafe {
         if let Some(ref mut grid) = GRID {

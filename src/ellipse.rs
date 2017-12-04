@@ -25,7 +25,7 @@
 use shape;
 use shape::*;
 use sketch;
-use transformation::getTransformations;
+use transformation::get_transformations;
 
 use na::{Point3, Translation, Vector3};
 
@@ -76,7 +76,7 @@ impl Ellipse {
 
         let transform;
         {
-            let transformations = getTransformations();
+            let transformations = get_transformations();
             if let Some(transformation) = transformations.last() {
                 transform = sketch.transformation * transformation
                     * Translation::from_vector(center - Point3::origin());

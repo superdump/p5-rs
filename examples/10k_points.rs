@@ -27,7 +27,6 @@ extern crate rand;
 
 use p5::*;
 
-use rand::Rng;
 use rand::distributions::{IndependentSample, Range};
 
 const N_OBJECTS: usize = 10_000;
@@ -58,7 +57,7 @@ fn setup() {
 
 fn draw() {
     stroke((1.0, 1.0, 1.0, 0.3));
-    strokeWeight(12);
+    stroke_weight(12);
     unsafe {
         if let Some(ref ps) = POINTS {
             for p in ps {
