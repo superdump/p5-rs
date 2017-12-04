@@ -45,7 +45,7 @@ pub fn have_anticlockwise_winding(p1: &Point3<f32>, p2: &Point3<f32>, p3: &Point
     let atana = a.y.atan2(a.x);
     let atanb = b.y.atan2(b.x);
     if atanb > 0.0 {
-        return atana > atanb || atana + f32::consts::PI < atanb
+        return atana > atanb || atana + f32::consts::PI < atanb;
     }
     atana > atanb && atana - f32::consts::PI < atanb
 }
