@@ -51,7 +51,7 @@ pub fn have_anticlockwise_winding(p1: &Point3<f32>, p2: &Point3<f32>, p3: &Point
 }
 
 // returns left, top, right, bottom
-pub fn bounding_box(points: &Vec<Point3<f32>>) -> (f32, f32, f32, f32) {
+pub fn bounding_box(points: &[Point3<f32>]) -> (f32, f32, f32, f32) {
     let mut left = f32::MAX;
     let mut bottom = f32::MAX;
     let mut right = f32::MIN;

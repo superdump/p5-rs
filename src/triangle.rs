@@ -22,18 +22,16 @@
  * SOFTWARE.
  */
 
-use color::*;
-use glapp;
 use shape;
 use shape::*;
+use sketch;
 use transformation::getTransformations;
 use utils::*;
 
-use na::{Point3, Transform3};
+use na::Point3;
 
 pub fn triangle(p1: Point3<f32>, p2: Point3<f32>, p3: Point3<f32>) {
-    let transformations = getTransformations();
-    Triangle::new(p1, p2, p3, transformations).draw();
+    Triangle::new(p1, p2, p3).draw();
 }
 
 pub struct Triangle {
@@ -42,12 +40,7 @@ pub struct Triangle {
 }
 
 impl Triangle {
-    pub fn new(
-        p1: Point3<f32>,
-        p2: Point3<f32>,
-        p3: Point3<f32>,
-        transformations: Transform3<f32>,
-    ) -> Triangle {
+    pub fn new(p1: Point3<f32>, p2: Point3<f32>, p3: Point3<f32>) -> Triangle {
         let mut triangle = Triangle {
             vertex_data: [0.0; 9 * 3],
             index_data: [0, 1, 2],
@@ -55,22 +48,32 @@ impl Triangle {
 
         let points;
         if have_anticlockwise_winding(&p1, &p2, &p3) {
-            points = vec![p1, p2, p3];
+            points = [p1, p2, p3];
         } else {
-            points = vec![p2, p1, p3];
+            points = [p2, p1, p3];
+        }
+        let (l, t, r, b) = bounding_box(&points);
+        let mut uvs: [f32; 6] = [0.0; 6];
+
+        for i in 0..points.len() {
+            uvs[i * 2] = map_f32(points[i].x, l, r, 0.0, 1.0);
+            uvs[i * 2 + 1] = map_f32(points[i].y, b, t, 0.0, 1.0);
         }
 
-        let transform = glapp::get_transform() * transformations;
-        let color = get_fill();
-        let (l, t, r, b) = bounding_box(&points);
+        let sketch = sketch::get_sketch();
+        let mut transform = sketch.transformation;
+        {
+            let transformations = getTransformations();
+            if let Some(transformation) = transformations.last() {
+                transform *= transformation;
+            }
+        }
+        let color = &sketch.fill;
         for i in 0..points.len() {
             assign_vertex(
                 &(transform * points[i]),
-                &[
-                    map_f32(points[i].x, l, r, 0.0, 1.0),
-                    map_f32(points[i].y, b, t, 0.0, 1.0),
-                ],
-                &color,
+                &uvs[i * 2..],
+                color,
                 &mut triangle.vertex_data[i * 9..],
             );
         }
