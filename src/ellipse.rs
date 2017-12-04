@@ -22,33 +22,25 @@
  * SOFTWARE.
  */
 
-use color::*;
-use glapp;
 use shape;
 use shape::*;
+use sketch;
 use transformation::getTransformations;
 
-use na::{Point3, Transform3, Translation, Vector3};
+use na::{Point3, Translation, Vector3};
 
 use std::f32::consts::*;
 
 const N_SEGMENTS: u32 = 64;
 
 pub fn ellipse(center: Point3<f32>, width: f32, height: f32) {
-    let transformations = getTransformations();
-    Ellipse::new(
-        center.into(),
-        width,
-        height,
-        N_SEGMENTS,
-        false,
-        transformations,
-    ).draw();
+    Ellipse::new(center.into(), width, height, N_SEGMENTS, false).draw();
 }
 
 pub struct Ellipse {
     vertex_data: [f32; 9 * N_SEGMENTS as usize],
-    index_data: [u32; 64],
+    index_data: [u32; N_SEGMENTS as usize],
+    n_segments: usize,
     is_stroke: bool,
 }
 
@@ -59,11 +51,12 @@ impl Ellipse {
         height: f32,
         n_segments: u32,
         is_stroke: bool,
-        transformations: Transform3<f32>,
     ) -> Ellipse {
+        let n_segments = n_segments as usize;
         let mut ellipse = Ellipse {
             vertex_data: [0.0; 9 * N_SEGMENTS as usize],
             index_data: [0; N_SEGMENTS as usize],
+            n_segments,
             is_stroke,
         };
 
@@ -73,57 +66,91 @@ impl Ellipse {
         let point_at_angle =
             |angle: f32| -> Point3<f32> { Point3::new(a * angle.sin(), b * angle.cos(), 0.0) };
 
+        let sketch = sketch::get_sketch();
         let color;
         if is_stroke {
-            color = get_stroke();
+            color = &sketch.stroke;
         } else {
-            color = get_fill();
+            color = &sketch.fill;
         }
 
-        let transform = glapp::get_transform() * transformations
-            * Translation::from_vector(center - Point3::origin());
-        assign_vertex(
-            &(transform * point_at_angle(-0.5 * PI)),
-            &[0.0, 0.5],
-            &color,
-            &mut ellipse.vertex_data,
-        );
-        let da = 2.0 * PI / (N_SEGMENTS as f32);
-        for i in 1..N_SEGMENTS / 2 {
-            let p = point_at_angle(-0.5 * PI + (i as f32) * da);
-            let index = (i as usize * 2 - 1) * 9;
-            assign_vertex(
-                &(transform * (p + Vector3::new(0.0, -2.0 * p.y, 0.0))),
-                &[p.x / a, -p.y / b],
-                &color,
-                &mut ellipse.vertex_data[index..],
-            );
-            assign_vertex(
-                &(transform * p),
-                &[p.x / a, p.y / b],
-                &color,
-                &mut ellipse.vertex_data[index + 9..],
-            );
+        let transform;
+        {
+            let transformations = getTransformations();
+            if let Some(transformation) = transformations.last() {
+                transform = sketch.transformation * transformation
+                    * Translation::from_vector(center - Point3::origin());
+            } else {
+                transform =
+                    sketch.transformation * Translation::from_vector(center - Point3::origin());
+            }
         }
+
         assign_vertex(
-            &(transform * point_at_angle(0.5 * PI)),
+            &(transform * Point3::new(-a, 0.0, 0.0)),
+            &[0.0, 0.5],
+            color,
+            &mut ellipse.vertex_data[0 * 9..],
+        );
+        let last_index = n_segments - 1;
+        assign_vertex(
+            &(transform * Point3::new(a, 0.0, 0.0)),
             &[1.0, 0.5],
             &color,
-            &mut ellipse.vertex_data[(N_SEGMENTS as usize - 1) * 9..],
+            &mut ellipse.vertex_data[last_index * 9..],
         );
+        let center_index = last_index / 2;
+        let mut n_points_remaining = n_segments - 2;
+        if n_segments % 4 == 0 {
+            assign_vertex(
+                &(transform * Point3::new(0.0, -b, 0.0)),
+                &[0.5, 0.0],
+                &color,
+                &mut ellipse.vertex_data[center_index * 9..],
+            );
+            assign_vertex(
+                &(transform * Point3::new(0.0, b, 0.0)),
+                &[0.5, 1.0],
+                color,
+                &mut ellipse.vertex_data[(center_index + 1) * 9..],
+            );
+            n_points_remaining -= 2;
+        }
 
-        /* e.g.
-         * n_segments = 6
-         * always anti-clockwise through vertices
-         *
-         *  2 4
-         * 0   5
-         *  1 3
-         *
-         * 0,1,2,3,4,5 as a triangle strip
-         */
+        let do_vertex = |p: Point3<f32>, offsets: &Vector3<f32>, vd: &mut [f32]| {
+            let point = p + offsets;
+            assign_vertex(
+                &(transform * point),
+                &[0.5 * (point.x / a + 1.0), 0.5 * (point.y / b + 1.0)],
+                color,
+                vd,
+            );
+        };
 
-        for i in 0..64 {
+        let da = 2.0 * PI / (n_segments as f32);
+        for i in 1..(n_points_remaining / 4) + 1 {
+            let p = point_at_angle(-0.5 * PI + (i as f32) * da);
+            let offsets = [
+                Vector3::new(0.0, -2.0 * p.y, 0.0),        // bl
+                Vector3::new(0.0, 0.0, 0.0),               // tl
+                Vector3::new(-2.0 * p.x, -2.0 * p.y, 0.0), // br
+                Vector3::new(-2.0 * p.x, 0.0, 0.0),        // tr
+            ];
+            do_vertex(p, &offsets[0], &mut ellipse.vertex_data[(2 * i - 1) * 9..]);
+            do_vertex(p, &offsets[1], &mut ellipse.vertex_data[(2 * i) * 9..]);
+            do_vertex(
+                p,
+                &offsets[2],
+                &mut ellipse.vertex_data[(last_index - (2 * i)) * 9..],
+            );
+            do_vertex(
+                p,
+                &offsets[3],
+                &mut ellipse.vertex_data[(last_index - (2 * i - 1)) * 9..],
+            );
+        }
+
+        for i in 0..n_segments {
             ellipse.index_data[i] = i as u32;
         }
 
@@ -133,10 +160,10 @@ impl Ellipse {
 
 impl Shape for Ellipse {
     fn vertex_data(&self) -> &[f32] {
-        &self.vertex_data
+        &self.vertex_data[..self.n_segments * 9]
     }
     fn index_data(&self) -> &[u32] {
-        &self.index_data
+        &self.index_data[..self.n_segments]
     }
     fn vertex_shader(&self) -> Option<String> {
         None

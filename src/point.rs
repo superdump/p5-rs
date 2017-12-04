@@ -25,19 +25,10 @@
 use ellipse::*;
 use shape::Shape;
 use sketch::get_stroke_weight;
-use transformation::getTransformations;
 
 use na::Point3;
 
 pub fn point(point: Point3<f32>) {
-    let diameter = get_stroke_weight();
-    let transformations = getTransformations();
-    Ellipse::new(
-        point,
-        diameter as f32,
-        diameter as f32,
-        16,
-        true,
-        transformations,
-    ).draw();
+    let diameter = get_stroke_weight() as f32;
+    Ellipse::new(point, diameter, diameter, 16, true).draw();
 }
