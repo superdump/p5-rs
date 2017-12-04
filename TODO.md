@@ -4,6 +4,7 @@
     * `loop()`, `noLoop()`
 * Imperative drawing
     * `beginShape()`, `vertex()`, `endShape()`
+    * strokes around the edges of shapes
     * 2D: `quad()`, `arc()`
     * 3D: `box()`, `sphere()`, 2-sided 2D primitives
 * Color
