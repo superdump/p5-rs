@@ -56,7 +56,7 @@ pub fn get_rect_vertex_data(
     let sketch = sketch::get_sketch();
     if is_line {
         // FIXME: Only works in 2D - need z = 0 to define a plane with the two points
-        let width = sketch.width;
+        let width = sketch.stroke_weight;
         let line = (bottom_right - top_left).normalize() * (width as f32 * 0.5).ceil();
         let anticlockwise =
             Rotation3::from_axis_angle(&Vector3::z_axis(), f32::consts::FRAC_PI_2) * line;
