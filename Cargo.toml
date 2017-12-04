@@ -6,7 +6,6 @@ description = "Processing / p5 for Rust. Trying to remain faithful to the Proces
 readme = "README.md"
 keywords = ["Processing", "p5"]
 license = "MIT"
-license-file = "LICENSE"
 
 [dependencies]
 game_time = "0.2.0"
