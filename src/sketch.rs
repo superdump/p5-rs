@@ -23,11 +23,11 @@
  */
 
 use color::*;
-use glapp::{DEFAULT_WIDTH, DEFAULT_HEIGHT};
+use glapp::{DEFAULT_HEIGHT, DEFAULT_WIDTH};
 
 use na::Transform3;
 
-use std::sync::Mutex;
+use std::sync::{Mutex, MutexGuard};
 
 lazy_static! {
     pub static ref SKETCH: Mutex<Sketch> = Mutex::new(Sketch::new());
@@ -55,6 +55,10 @@ impl Sketch {
             transformation: Transform3::identity(),
         }
     }
+}
+
+pub fn get_sketch<'a>() -> MutexGuard<'a, Sketch> {
+    SKETCH.lock().unwrap()
 }
 
 pub fn strokeWeight(w: u32) {
