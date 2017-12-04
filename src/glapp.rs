@@ -211,10 +211,6 @@ pub fn size(w: u32, h: u32) {
     channel::send();
 }
 
-pub fn get_transform() -> Transform3<f32> {
-    SKETCH.lock().unwrap().transformation.clone()
-}
-
 const N_BUFFERS: usize = 1;
 
 struct GLApp {

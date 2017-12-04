@@ -24,7 +24,7 @@
 
 use na::{Matrix4, Rotation3, Transform3, Translation, Vector3};
 
-use std::sync::Mutex;
+use std::sync::{Mutex, MutexGuard};
 
 lazy_static! {
     static ref TRANSFORMATION_STACK: Mutex<Vec<Transform3<f32>>> = Mutex::new(vec![Transform3::identity()]);
@@ -36,11 +36,8 @@ pub fn reset() {
     transformation_stack.push(Transform3::identity());
 }
 
-pub fn getTransformations() -> Transform3<f32> {
-    if let Some(transformations) = TRANSFORMATION_STACK.lock().unwrap().last() {
-        return transformations.clone();
-    }
-    Transform3::identity()
+pub fn getTransformations<'a>() -> MutexGuard<'a, Vec<Transform3<f32>>> {
+    TRANSFORMATION_STACK.lock().unwrap()
 }
 
 pub fn pushMatrix() {
