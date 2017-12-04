@@ -88,7 +88,7 @@ pub fn get_fill() -> Color {
 }
 
 pub fn noFill() {
-    SKETCH.lock().unwrap().fill = 0.0.into();
+    SKETCH.lock().unwrap().fill = (0.0, 0.0, 0.0, 0.0).into();
 }
 
 pub fn stroke<C: Into<Color>>(color: C) {
@@ -100,5 +100,5 @@ pub fn get_stroke() -> Color {
 }
 
 pub fn noStroke() {
-    SKETCH.lock().unwrap().stroke = 0.0.into();
+    SKETCH.lock().unwrap().stroke = (0.0, 0.0, 0.0, 0.0).into();
 }
