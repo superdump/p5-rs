@@ -28,7 +28,10 @@ use sketch::get_stroke_weight;
 
 use na::Point3;
 
+use std::cmp;
+
 pub fn point(point: Point3<f32>) {
     let diameter = get_stroke_weight() as f32;
-    Ellipse::new(point, diameter, diameter, 16, true).draw();
+    let n_segments = cmp::max(diameter.log2().ceil() as u32, 4);
+    Ellipse::new(point, diameter, diameter, 1 << n_segments, true).draw();
 }
