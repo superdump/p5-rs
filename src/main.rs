@@ -23,11 +23,8 @@
  */
 
 extern crate p5;
-extern crate rand;
 
 use p5::*;
-
-use rand::distributions::{IndependentSample, Range};
 
 const N_OBJECTS: usize = 100_000;
 
@@ -40,13 +37,11 @@ fn setup() {
     size(WIDTH, HEIGHT);
     background(0.2);
 
-    let between = Range::new(-((WIDTH / 2) as f32), (WIDTH / 2) as f32);
-    let mut rng = rand::thread_rng();
     let mut ps: Vec<Point3<f32>> = Vec::with_capacity(N_OBJECTS);
     for _ in 0..N_OBJECTS {
         ps.push(Point3::new(
-            between.ind_sample(&mut rng),
-            between.ind_sample(&mut rng),
+            random(-((WIDTH / 2) as f32), (WIDTH / 2) as f32),
+            random(-((WIDTH / 2) as f32), (WIDTH / 2) as f32),
             0.0,
         ));
     }
