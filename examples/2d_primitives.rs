@@ -28,8 +28,11 @@ use p5::*;
 
 static mut T: f32 = 0.0;
 
+const WIDTH: u32 = 400;
+const HEIGHT: u32 = 400;
+
 fn setup() {
-    size(400, 400);
+    size(WIDTH, HEIGHT);
     background(0.2);
 }
 
@@ -45,10 +48,15 @@ fn draw() {
 
     fill((1.0, 0.0, 0.0));
     push_matrix();
-    translate(&radius_offset);
+    let noise_val;
     unsafe {
-        rotate(T);
+        noise_val = noise(Point4::new(T / 3.0, 0.0, 0.0, 0.0));
     }
+    translate(&Vector3::new(
+        (noise_val - 0.5) * WIDTH as f32,
+        (0.5 - noise_val) * HEIGHT as f32,
+        0.0,
+    ));
     triangle(p1, p2, p3);
     pop_matrix();
 
