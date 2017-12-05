@@ -11,7 +11,6 @@
     * HSB, HSL, RGB, alpha - `colorMode()`
 * Utility
     * `degrees()`, `radians()`
-    * `noise()`, `random()`
 
 ## DONE
 
@@ -68,3 +67,4 @@
     * transforms: `popMatrix()`, `pushMatrix()`, `rotate()`, `rotateX()`, `rotateY()`, `rotateZ()`, `translate()`, `scale()`
 * Utility
     * (use nalgebra) `dist()`, `lerp()`, `mag()`, `map()`, `norm()`
+    * `noise()`, `random()`
